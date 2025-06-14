@@ -5,7 +5,8 @@ from consecuencias import (
     ConsecuenciaEliminacion,
     ConsecuenciaModificacion,
 )
-from reglas import Regla, MotorReglas
+from reglas import Regla
+from motorEjecucion import MotorEjecucion
 
 
 if __name__ == "__main__":
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     base.proposiciones["Disponible"].add(("l3",))
     base.proposiciones["Disponible"].add(("l4",))
 
-    motor = MotorReglas(base)
+    motor = MotorEjecucion(base)
 
     r1 = Regla(
         "prestar_libro",

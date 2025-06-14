@@ -1,3 +1,5 @@
+from typing import List
+
 from base import (
     BaseConocimiento,
     TipoComparacion,
@@ -10,7 +12,26 @@ from consecuencias import (
     ConsecuenciaEliminacion,
     ConsecuenciaModificacion,
 )
-from reglas import Regla, MotorReglas
+from reglas import Regla
+
+
+class MotorEjecucion:
+    def __init__(self, base: BaseConocimiento):
+        self.base = base
+        self.reglas: List[Regla] = []
+        self.acciones: List[Regla] = []
+
+    def add_regla(self, regla: Regla, accion: bool = False):
+        if accion:
+            self.acciones.append(regla)
+        else:
+            self.reglas.append(regla)
+
+    def ejecutar_accion(self, nombre_accion: str, valores: List[str]):
+        for regla in self.acciones:
+            if regla.nombre == nombre_accion:
+                regla.ejecutar(valores, self.base)
+                break
 
 
 if __name__ == "__main__":
@@ -34,7 +55,7 @@ if __name__ == "__main__":
     base.proposiciones["Disponible"].add(("l3",))
     base.proposiciones["Disponible"].add(("l4",))
 
-    motor = MotorReglas(base)
+    motor = MotorEjecucion(base)
 
     r1 = Regla(
         "prestar_libro",

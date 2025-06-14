@@ -31,22 +31,3 @@ class Regla:
             for c in self.consecuencias:
                 c.ejecutar(contexto, base)
             logger.info(f"[Regla:{self.nombre}] Consecuencias ejecutadas")
-
-
-class MotorReglas:
-    def __init__(self, base: BaseConocimiento):
-        self.base = base
-        self.reglas: List[Regla] = []
-        self.acciones: List[Regla] = []
-
-    def add_regla(self, regla: Regla, accion: bool = False):
-        if accion:
-            self.acciones.append(regla)
-        else:
-            self.reglas.append(regla)
-
-    def ejecutar_accion(self, nombre_accion: str, valores: List[str]):
-        for regla in self.acciones:
-            if regla.nombre == nombre_accion:
-                regla.ejecutar(valores, self.base)
-                break
