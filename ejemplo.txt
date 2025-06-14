@@ -1,4 +1,4 @@
-Categoria Usuario(Libros_Prestados:int);
+Categoria Usuario(libros_Prestados:int);
 Categoria Libro();
 Prop Prestamo(Usuario,Libro);
 Prop LibroPrestado(Libro);
@@ -32,19 +32,23 @@ LibroPrestado(Y); //Comprueba que el libro estaba prestado
 		X.libros_Prestados -=1; //Decrementa el numero de libros prestados
 		DEL LibroPrestado (Y); //Ya no esta prestado
 		Disponible(Y); // Ya esta disponible
-		DEL UsuarioLibros(X,Y); //Elimina el registro del libro al usuario 
+		DEL Prestamos(X,Y); //Elimina el registro del libro al usuario 
 
 //Inicializacion
 new Usuario(“nacho”,0);
 new Usuario(“juan”,0);
 new Libro(“El señor de los anillos”);
 add Libro(“El señor de los anillos”);
+add Disponible(“El señor de los anillos”); // Marca como disponible
 new Libro(“El Quijote”);
 add Libro(“El Quijote”);
+add Disponible(“El Quijote”); // Marca como disponible
 new Libro(“1984”);
 add Libro(“1984”);
+add Disponible(“1984”); // Marca como disponible
 new Libro(“Dune”);
 add Libro(“Dune”);
+add Disponible(“Dune”); // Marca como disponible
 //Test
 Run PrestarLibro(“nacho”, “El señor de los anillos”);
 Run PrestarLibro(“nacho”, “El Quijote”);

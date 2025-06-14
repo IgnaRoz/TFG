@@ -28,8 +28,8 @@ class MotorVisitor(gramaticaVisitor):
 
     def _parse_operando(self, ctx):
         # Puede ser OperandoContext, OperandoIzqContext o OperandoDrcContext
-        if hasattr(ctx, 'operandoIzq'):
-            return self._parse_operando(ctx.operandoIzq())
+
+                
         if getattr(ctx, 'VARIABLE', None):
             var = ctx.VARIABLE().getText()
             if ctx.getChildCount() == 3:  # VARIABLE '.' idName
