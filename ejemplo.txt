@@ -1,0 +1,57 @@
+Categoria Usuario(Libros_Prestados:int);
+Categoria Libro();
+Prop Prestamo(Usuario,Libro);
+Prop LibroPrestado(Libro);
+Prop Disponible(Libro);
+
+Accion PrestarLibro(X,Y):
+"""
+Entradas: X: Usuario, Y:Libro 
+Descripción: Se le asignara al usuario X, el libro Y como prestamo
+"""
+	Condiciones: 
+Usuario(X); //Comprueba que el individuo X es un usuario
+X.libros_Prestados < 3 ; // Los libros prestados deben ser menos que 3
+Libro(Y ); //Comprueba que el individuo Y es un libro
+Disponible(Y); //Comprueba si el libro Y esta disponible
+	Consecuencias: 
+		X.libros_Prestados +=1; //Incrementa el numero de libros prestados
+		DEL Disponible(Y);  //Elimina el libro como disponible
+		LibroPrestado(Y); // Marca como no disponible
+		Prestamos(X,Y); //Asigna al usuario el libro 
+Accion DevolverLibro(X,Y):
+"""
+Entradas: X: Usuario, Y:Libro 
+Descripción: Se le asignara al usuario X, el libro Y como prestamo
+"""
+	Condiciones: 
+Usuario(X); //No debería hacer falta, se debería poder averiguar X apartir de UsuarioLibros
+Libro(Y ); //Comprueba que el individuo Y es un libro
+LibroPrestado(Y); //Comprueba que el libro estaba prestado
+	Consecuencias: 
+		X.libros_Prestados -=1; //Decrementa el numero de libros prestados
+		DEL LibroPrestado (Y); //Ya no esta prestado
+		Disponible(Y); // Ya esta disponible
+		DEL UsuarioLibros(X,Y); //Elimina el registro del libro al usuario 
+
+//Inicializacion
+new Usuario(“nacho”,0);
+new Usuario(“juan”,0);
+new Libro(“El señor de los anillos”);
+add Libro(“El señor de los anillos”);
+new Libro(“El Quijote”);
+add Libro(“El Quijote”);
+new Libro(“1984”);
+add Libro(“1984”);
+new Libro(“Dune”);
+add Libro(“Dune”);
+//Test
+Run PrestarLibro(“nacho”, “El señor de los anillos”);
+Run PrestarLibro(“nacho”, “El Quijote”);
+Run PrestarLibro(“nacho”, “1984”);
+Run PrestarLibro(“nacho”, “Dune”); //Debe fallar, ya tiene 3 libros
+Run DevolverLibro(“nacho”, "El señor de los anillos”);
+Run PrestarLibro(“nacho”, “Dune”); // ahora sí debe funcionar
+Run PrestarLibro(“juan”, “El Quijote”) ;// Debe fallar, El Quijote ya esta prestado
+Run DevolverLibro(“nacho”, “El Quijote”);
+Run PrestarLibro(“juan”, “El Quijote”) ;// ahora si debe funcionar
