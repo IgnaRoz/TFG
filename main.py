@@ -1,9 +1,4 @@
-from base import (
-    BaseConocimiento,
-    TipoComparacion,
-    TipoOperacion,
-    logger,
-)
+from base import BaseConocimiento, TipoComparacion, TipoOperacion
 from condiciones import CondicionSimple, CondicionComparacion
 from consecuencias import (
     ConsecuenciaAsignacion,
