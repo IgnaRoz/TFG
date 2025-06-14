@@ -20,6 +20,7 @@ class MotorEjecucion:
         self.base = base
         self.reglas: List[Regla] = []
         self.acciones: List[Regla] = []
+        self.archivo = None
 
     def add_regla(self, regla: Regla, accion: bool = False):
         if accion:
@@ -32,6 +33,45 @@ class MotorEjecucion:
             if regla.nombre == nombre_accion:
                 regla.ejecutar(valores, self.base)
                 break
+
+    # Nuevas utilidades -------------------------------------------------
+    def set_archivo(self, ruta: str):
+        self.archivo = ruta
+
+    def cargar_archivo(self):
+        if not self.archivo:
+            return
+        from antlr4 import FileStream, CommonTokenStream
+        from gramaticaLexer import gramaticaLexer
+        from gramaticaParser import gramaticaParser
+        from motor_visitor import MotorVisitor
+
+        stream = FileStream(self.archivo, encoding="utf-8")
+        lexer = gramaticaLexer(stream)
+        tokens = CommonTokenStream(lexer)
+        parser = gramaticaParser(tokens)
+        tree = parser.programa()
+        visitor = MotorVisitor(self)
+        visitor.visit(tree)
+
+    # Métodos para el visitor ------------------------------------------
+    def crear_categoria(self, nombre: str, esquema: dict):
+        self.base.crear_categoria(nombre, esquema)
+
+    def crear_proposicion(self, nombre: str, n: int):
+        self.base.crear_proposicion(nombre, n)
+
+    def nuevo_individuo(self, nombre: str, args: List):
+        if nombre not in self.base.categorias:
+            return
+        esquema = list(self.base.categorias[nombre].esquema.keys())
+        atributos = dict(zip(esquema, args[1:])) if esquema else {}
+        id_ = args[0] if args else nombre
+        self.base.asignar_individuo_a_categoria(id_, nombre, atributos)
+
+    def add_proposicion(self, nombre: str, valores: List):
+        if nombre in self.base.proposiciones:
+            self.base.proposiciones[nombre].add(tuple(valores))
 
 
 if __name__ == "__main__":
