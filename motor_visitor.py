@@ -1,10 +1,16 @@
 from antlr4 import ParseTreeVisitor
+from antlr4.tree.Tree import ErrorNodeImpl
+import logging
 from gramaticaVisitor import gramaticaVisitor
 from gramaticaParser import gramaticaParser
-from motorEjecucion import MotorEjecucion
+from motorEjecucion import MotorEjecucion, logger
 from base import TipoComparacion, TipoOperacion
 from condiciones import CondicionSimple, CondicionComparacion
-from consecuencias import ConsecuenciaAsignacion, ConsecuenciaEliminacion, ConsecuenciaModificacion
+from consecuencias import (
+    ConsecuenciaAsignacion,
+    ConsecuenciaEliminacion,
+    ConsecuenciaModificacion,
+)
 from reglas import Regla
 
 
@@ -18,6 +24,13 @@ class MotorVisitor(gramaticaVisitor):
     def __init__(self, motor: MotorEjecucion):
         super().__init__()
         self.motor = motor
+
+    def visitChildren(self, node):
+        if any(isinstance(c, ErrorNodeImpl) for c in (getattr(node, 'children', None) or [])):
+            raise ValueError(
+                f"Error de sintaxis en '{node.getText()}' en {node.start.line}:{node.start.column}"
+            )
+        return super().visitChildren(node)
 
     # Helpers --------------------------------------------------------------
     def _parse_arg_lit(self, ctx: gramaticaParser.ArgLitContext):
@@ -70,42 +83,76 @@ class MotorVisitor(gramaticaVisitor):
                 args.append(p.getText())
         return nombre, args
 
+    # Visit helpers -------------------------------------------------------
+    def visitListaAtributos(self, ctx: gramaticaParser.ListaAtributosContext):
+        valores = []
+        for atr in ctx.atributo():
+            valores.append(self.visit(atr))
+        return valores
+
+    def visitAtributo(self, ctx: gramaticaParser.AtributoContext):
+        nombre = ctx.idName().getText()
+        tipo_token = ctx.tipoBasico().getText()
+        tipo = {"int": int, "str": str, "bool": bool}[tipo_token]
+        return nombre, tipo
+
+    def visitListaIdentificadores(self, ctx: gramaticaParser.ListaIdentificadoresContext):
+        return [idn.getText() for idn in ctx.idName()]
+
     # Visitor methods -----------------------------------------------------
     def visitDeclCategoria(self, ctx: gramaticaParser.DeclCategoriaContext):
         nombre = ctx.idName().getText()
         esquema = {}
         if ctx.listaAtributos():
-            for atr in ctx.listaAtributos().atributo():
-                attr_nombre = atr.idName().getText()
-                tipo_token = atr.tipoBasico().getText()
-                tipo = {'int': int, 'str': str, 'bool': bool}[tipo_token]
-                esquema[attr_nombre] = tipo
-        self.motor.crear_categoria(nombre, esquema)
+            for n, t in self.visit(ctx.listaAtributos()):
+                esquema[n] = t
+        try:
+            self.motor.crear_categoria(nombre, esquema)
+        except Exception as e:
+            logger.error(str(e))
         return None
 
     def visitDeclProposicion(self, ctx: gramaticaParser.DeclProposicionContext):
         nombre = ctx.idName().getText()
         n = 0
         if ctx.listaIdentificadores():
-            n = len(ctx.listaIdentificadores().idName())
-        self.motor.crear_proposicion(nombre, n)
+            n = len(self.visit(ctx.listaIdentificadores()))
+        try:
+            self.motor.crear_proposicion(nombre, n)
+        except Exception as e:
+            logger.error(str(e))
         return None
 
     def visitInicializacion(self, ctx: gramaticaParser.InicializacionContext):
         modo = ctx.getChild(0).getText()
         nombre = ctx.idName().getText()
         args = [self._parse_arg_lit(a) for a in ctx.argLit()]
-        if modo == 'new':
-            self.motor.nuevo_individuo(nombre, args)
-        else:
-            self.motor.add_proposicion(nombre, args)
+        try:
+            if modo == 'new':
+                self.motor.nuevo_individuo(nombre, args)
+            else:
+                self.motor.add_proposicion(nombre, args)
+        except Exception as e:
+            logger.error(str(e))
         return None
 
     def visitEjecucion(self, ctx: gramaticaParser.EjecucionContext):
         nombre = ctx.idName().getText()
         args = [self._parse_arg_lit(a) for a in ctx.argLit()]
-        self.motor.ejecutar_accion(nombre, args)
+        try:
+            self.motor.ejecutar_accion(nombre, args)
+        except Exception as e:
+            logger.error(str(e))
         return None
+
+    def visitElemento(self, ctx: gramaticaParser.ElementoContext):
+        try:
+            return super().visitElemento(ctx)
+        except Exception as e:
+            start = ctx.start.line
+            end = getattr(ctx.stop, "line", start)
+            logger.warning(f"Elemento ignorado entre lineas {start}-{end}: {e}")
+            return None
 
     def visitAccion(self, ctx: gramaticaParser.AccionContext):
         nombre = ctx.idName().getText()
@@ -143,5 +190,8 @@ class MotorVisitor(gramaticaVisitor):
                 prop, args = self._parse_predicado(cons.predicado())
                 vars_ = [a for a in args if a[:1].isupper()]
                 regla.consecuencias.append(ConsecuenciaAsignacion(prop, args, vars_))
-        self.motor.add_regla(regla, accion=True)
+        try:
+            self.motor.add_regla(regla, accion=True)
+        except Exception as e:
+            logger.error(str(e))
         return None

@@ -1,10 +1,10 @@
 from typing import List
 
+import logging
 from base import (
     BaseConocimiento,
     TipoComparacion,
     TipoOperacion,
-    logger,
 )
 from condiciones import CondicionSimple, CondicionComparacion
 from consecuencias import (
@@ -13,6 +13,47 @@ from consecuencias import (
     ConsecuenciaModificacion,
 )
 from reglas import Regla
+
+
+class LogColors:
+    DEBUG = "\033[94m"
+    INFO = "\033[92m"
+    WARNING = "\033[93m"
+    ERROR = "\033[91m"
+    RESET = "\033[0m"
+
+
+class ColoredFormatter(logging.Formatter):
+    LEVEL_COLOR = {
+        "DEBUG": LogColors.DEBUG,
+        "INFO": LogColors.INFO,
+        "WARNING": LogColors.WARNING,
+        "ERROR": LogColors.ERROR,
+        "CRITICAL": LogColors.ERROR,
+    }
+
+    def format(self, record):
+        color = self.LEVEL_COLOR.get(record.levelname, LogColors.RESET)
+        message = super().format(record)
+        return f"{color}{message}{LogColors.RESET}"
+
+
+handler = logging.StreamHandler()
+handler.setFormatter(
+    ColoredFormatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
+)
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.handlers = [handler]
+
+
+from antlr4.error.ErrorListener import ErrorListener as AntlrErrorListener
+
+
+class ErrorListener(AntlrErrorListener):
+    def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
+        token = getattr(offendingSymbol, "text", str(offendingSymbol))
+        logger.error(f"Error {line}:{column} en '{token}': {msg}")
 
 
 class MotorEjecucion:
@@ -48,8 +89,13 @@ class MotorEjecucion:
 
         stream = FileStream(self.archivo, encoding="utf-8")
         lexer = gramaticaLexer(stream)
+        parser_error = ErrorListener()
+        lexer.removeErrorListeners()
+        lexer.addErrorListener(parser_error)
         tokens = CommonTokenStream(lexer)
         parser = gramaticaParser(tokens)
+        parser.removeErrorListeners()
+        parser.addErrorListener(parser_error)
         tree = parser.programa()
         visitor = MotorVisitor(self)
         visitor.visit(tree)

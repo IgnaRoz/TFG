@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List
 
-from base import BaseConocimiento, OPERADORES, TipoComparacion, logger
+import logging
+from base import BaseConocimiento, OPERADORES, TipoComparacion
+
+logger = logging.getLogger(__name__)
 
 
 class Condicion(ABC):
@@ -19,6 +22,8 @@ class CondicionSimple(Condicion):
         self.nombre_proposicion = nombre_proposicion
 
     def validar(self, contexto: Dict[str, str], base: BaseConocimiento) -> bool:
+        if self.nombre_proposicion not in base.proposiciones:
+            raise ValueError(f"Proposición '{self.nombre_proposicion}' no existe")
         tupla = tuple(contexto[v] for v in self.variables)
         resultado = base.proposiciones[self.nombre_proposicion].existe(tupla)
         logger.debug(f"[{self.nombre_proposicion}] Validación simple {tupla} -> {resultado}")
@@ -36,7 +41,10 @@ class CondicionComparacion(Condicion):
         if isinstance(expr, tuple) and len(expr) == 2:
             var, attr = expr
             id_ = contexto.get(var)
-            return base.individuos.obtener(id_).get(attr)
+            indiv = base.individuos.obtener(id_)
+            if indiv is None:
+                raise ValueError(f"Individuo '{id_}' no existe")
+            return indiv.get(attr)
         elif isinstance(expr, str) and expr in contexto:
             return contexto[expr]
         return expr

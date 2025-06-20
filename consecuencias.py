@@ -1,7 +1,10 @@
 from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Union
 
-from base import BaseConocimiento, TipoOperacion, logger
+import logging
+from base import BaseConocimiento, TipoOperacion
+
+logger = logging.getLogger(__name__)
 
 
 class Consecuencia(ABC):
@@ -35,6 +38,8 @@ class ConsecuenciaEliminacion(Consecuencia):
 
     def ejecutar(self, contexto: Dict[str, str], base: BaseConocimiento):
         tupla = tuple(contexto.get(p, p) for p in self.parametros)
+        if self.proposicion not in base.proposiciones:
+            raise ValueError(f"Proposición '{self.proposicion}' no existe")
         logger.info(f"[Accion] Eliminar {tupla} de {self.proposicion}")
         base.proposiciones[self.proposicion].eliminar(tupla)
 
@@ -59,6 +64,10 @@ class ConsecuenciaModificacion(Consecuencia):
     def ejecutar(self, contexto: Dict[str, str], base: BaseConocimiento):
         id_ = contexto.get(self.objetivo, self.objetivo)
         indiv = base.individuos.obtener(id_)
+        if indiv is None:
+            raise ValueError(f"Individuo '{id_}' no existe")
+        if self.atributo not in indiv:
+            raise ValueError(f"Atributo '{self.atributo}' no existe en '{id_}'")
         if not isinstance(indiv[self.atributo], int):
             raise ValueError("El atributo debe ser de tipo entero para modificaciones")
 
