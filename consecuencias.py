@@ -4,7 +4,7 @@ from typing import Dict, List, Tuple, Union
 import logging
 from base import BaseConocimiento, TipoOperacion
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("LOG")
 
 
 class Consecuencia(ABC):

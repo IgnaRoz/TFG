@@ -2,7 +2,7 @@ from typing import List
 
 import logging
 from base import BaseConocimiento
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("LOG")
 from condiciones import Condicion
 from consecuencias import Consecuencia
 

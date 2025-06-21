@@ -1,5 +1,5 @@
 from typing import List
-
+from terminal import Terminal
 import logging
 from base import (
     BaseConocimiento,
@@ -42,7 +42,7 @@ handler = logging.StreamHandler()
 handler.setFormatter(
     ColoredFormatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("LOG")
 logger.setLevel(logging.DEBUG)
 logger.handlers = [handler]
 
@@ -51,9 +51,15 @@ from antlr4.error.ErrorListener import ErrorListener as AntlrErrorListener
 
 
 class ErrorListener(AntlrErrorListener):
+    def __init__(self):
+        self.errores = []  
     def syntaxError(self, recognizer, offendingSymbol, line, column, msg, e):
         token = getattr(offendingSymbol, "text", str(offendingSymbol))
-        logger.error(f"Error {line}:{column} en '{token}': {msg}")
+        #logger.error(f"Error {line}:{column} en '{token}': {msg}")
+        self.errores.append(f"Error {line}:{column} en '{token}': {msg}")
+    
+
+        
 
 
 class MotorEjecucion:
@@ -97,8 +103,19 @@ class MotorEjecucion:
         parser.removeErrorListeners()
         parser.addErrorListener(parser_error)
         tree = parser.programa()
+        if parser_error.errores:
+            for error in parser_error.errores:
+                logger.error(error)
+            return
+
         visitor = MotorVisitor(self)
         visitor.visit(tree)
+    def run_terminal(self):    
+        """
+        Inicia la terminal interactiva para ejecutar comandos.
+        """
+        terminal = Terminal(self)
+        terminal.run()    
 
     # Métodos para el visitor ------------------------------------------
     def crear_categoria(self, nombre: str, esquema: dict):

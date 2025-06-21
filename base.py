@@ -55,13 +55,13 @@ class Proposicion:
         if tupla in self.tuplas:
             raise ValueError(f"La tupla {tupla} ya existe en {self.nombre}")
         self.tuplas.add(tupla)
-        logging.getLogger(__name__).debug(f"[{self.nombre}] Added tuple {tupla}")
+        logging.getLogger("LOG").debug(f"[{self.nombre}] Added tuple {tupla}")
 
     def eliminar(self, tupla: Tuple[str, ...]):
         if tupla not in self.tuplas:
             raise ValueError(f"La tupla {tupla} no existe en {self.nombre}")
         self.tuplas.discard(tupla)
-        logging.getLogger(__name__).debug(f"[{self.nombre}] Eliminada tupla {tupla}")
+        logging.getLogger("LOG").debug(f"[{self.nombre}] Eliminada tupla {tupla}")
 
     def existe(self, tupla: Tuple[str, ...]) -> bool:
         return tupla in self.tuplas

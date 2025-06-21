@@ -10,10 +10,10 @@ Entradas: X: Usuario, Y:Libro
 Descripción: Se le asignara al usuario X, el libro Y como prestamo
 """
 	Condiciones: 
-Usuario(X); //Comprueba que el individuo X es un usuario
-X.libros_Prestados < 3 ; // Los libros prestados deben ser menos que 3
-Libro(Y ); //Comprueba que el individuo Y es un libro
-Disponible(Y); //Comprueba si el libro Y esta disponible
+		Usuario(X); //Comprueba que el individuo X es un usuario
+		X.libros_Prestados < 3 ; // Los libros prestados deben ser menos que 3
+		Libro(Y ); //Comprueba que el individuo Y es un libro
+		Disponible(Y); //Comprueba si el libro Y esta disponible
 	Consecuencias: 
 		X.libros_Prestados +=1; //Incrementa el numero de libros prestados
 		DEL Disponible(Y);  //Elimina el libro como disponible
@@ -38,16 +38,16 @@ LibroPrestado(Y); //Comprueba que el libro estaba prestado
 new Usuario(“nacho”,0);
 new Usuario(“juan”,0);
 new Libro(“El señor de los anillos”);
-add Libro(“El señor de los anillos”);
+//add Libro(“El señor de los anillos”);
 add Disponible(“El señor de los anillos”); // Marca como disponible
 new Libro(“El Quijote”);
-add Libro(“El Quijote”);
+//add Libro(“El Quijote”);
 add Disponible(“El Quijote”); // Marca como disponible
 new Libro(“1984”);
-add Libro(“1984”);
+//add Libro(“1984”);
 add Disponible(“1984”); // Marca como disponible
 new Libro(“Dune”);
-add Libro(“Dune”);
+//add Libro(“Dune”);
 add Disponible(“Dune”); // Marca como disponible
 //Test
 Run PrestarLibro(“nacho”, “El señor de los anillos”);

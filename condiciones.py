@@ -4,7 +4,7 @@ from typing import Dict, List
 import logging
 from base import BaseConocimiento, OPERADORES, TipoComparacion
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("LOG")
 
 
 class Condicion(ABC):
