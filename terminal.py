@@ -2,8 +2,17 @@
 import sys
 import shlex
 
+COMANDOS = {
+    'run': 'Ejecuta una acción con los parámetros dados.',
+    'new': 'Crea un nuevo individuo con los parámetros dados.',
+    'add': 'Añade una proposición con los parámetros dados.',
+    'load': 'Carga un archivo de configuración.',
+    'exit': 'Sale del programa.',
+    'quit': 'Sale del programa.',
+    'help': 'Muestra esta ayuda.',
+}
 class Terminal:
-
+    
     def __init__(self, motor):
 
         self.motor = motor
@@ -26,8 +35,8 @@ class Terminal:
         verb = tokens[0].lower()
         if verb in ('exit', 'quit'):
             sys.exit(0)
-        if verb not in ('run', 'new', 'add', 'load'):
-            print("Error: comando no reconocido. Usa 'run', 'new', 'add' o 'load'.")
+        if verb not in COMANDOS:
+            print(f"Error: comando no reconocido. Comandos disponibles: {', '.join(COMANDOS.keys())}")
             return
 
         # 4) Manejar 'load' (sin parámetros entre comillas)
@@ -62,6 +71,10 @@ class Terminal:
                 self.ejecutar_comando_new(prop, params)
             elif verb == 'add':
                 self.ejecutar_comando_add(prop, params)
+        elif verb == 'help':
+            print("Comandos disponibles:")
+            for cmd, desc in COMANDOS.items():
+                print(f"  {cmd}: {desc}")
         else:
             print(f"Error: comando '{verb}' no reconocido. Usa 'run', 'new', 'add' o 'load'.")
 
