@@ -6,7 +6,7 @@ from gramaticaVisitor import gramaticaVisitor
 from gramaticaParser import gramaticaParser
 from motorEjecucion import MotorEjecucion, logger
 from base import TipoComparacion, TipoOperacion
-from condiciones import CondicionSimple, CondicionComparacion
+from condiciones import CondicionSimple, CondicionComparacion, CondicionLogica, CondicionNegacion
 from consecuencias import (
     ConsecuenciaAsignacion,
     ConsecuenciaEliminacion,
@@ -241,9 +241,31 @@ class MotorVisitor(gramaticaVisitor):
             condicion = CondicionSimple(prop, vars_)
         elif ctx.comparacion():
             condicion = self.visitComparacion(ctx.comparacion())
-        #self.visitChildren(ctx)
+        elif ctx.operacionLogica():
+            condicion = self.visitOperacionLogica(ctx.operacionLogica())
 
         return condicion
+    def visitOperacionLogica(self, ctx: gramaticaParser.OperacionLogicaContext):
+        if any(isinstance(c, ErrorNodeImpl) for c in (getattr(ctx, 'children', None) or [])):
+            raise ValueError(
+                f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
+            )
+        operador = ctx.start.type
+        if operador == gramaticaParser.AND:
+            op = "AND"
+            condiciones = self.visitListaCondiciones(ctx.listaCondiciones())
+            return CondicionLogica(condiciones, op)
+        elif operador == gramaticaParser.OR:
+            op = "OR"
+            condiciones = self.visitListaCondiciones(ctx.listaCondiciones())
+            return CondicionLogica(condiciones, op)
+        elif operador == gramaticaParser.NOT:
+            condicion = self.visitCondicion(ctx.condicion())
+            return CondicionNegacion(condicion)
+        else:
+            raise ValueError(
+                f"Operador lógico desconocido '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
+            )
     def visitComparacion(self, ctx):
         if any(isinstance(c, ErrorNodeImpl) for c in (getattr(ctx, 'children', None) or [])):
             raise ValueError(

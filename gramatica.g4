@@ -57,6 +57,7 @@ listaCondiciones
 condicion
     : predicado
     | comparacion
+    | operacionLogica
     ;
 
 predicado
@@ -91,6 +92,17 @@ operando
     | STRING                     # operandoStr
     | BOOLEAN                    # operandoBool
     ;
+
+operacionLogica
+    : OR '(' listaCondiciones ')'        #opOr
+    | AND '(' listaCondiciones ')'       #opAnd
+    | NOT '(' condicion ')'              #opNot
+    ;
+
+OR  : 'OR'  ;
+AND : 'AND' ;
+NOT : 'NOT' ;
+
 
  // **Cada consecuencia termina en ';', antes de comentarioSimple opcional**
 listaConsecuencias

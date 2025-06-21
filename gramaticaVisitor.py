@@ -129,6 +129,21 @@ class gramaticaVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramaticaParser#opOr.
+    def visitOpOr(self, ctx:gramaticaParser.OpOrContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#opAnd.
+    def visitOpAnd(self, ctx:gramaticaParser.OpAndContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#opNot.
+    def visitOpNot(self, ctx:gramaticaParser.OpNotContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramaticaParser#listaConsecuencias.
     def visitListaConsecuencias(self, ctx:gramaticaParser.ListaConsecuenciasContext):
         return self.visitChildren(ctx)
