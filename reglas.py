@@ -1,6 +1,8 @@
 from typing import List
 
-from base import BaseConocimiento, logger
+import logging
+from base import BaseConocimiento
+logger = logging.getLogger("LOG")
 from condiciones import Condicion
 from consecuencias import Consecuencia
 

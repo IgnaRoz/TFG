@@ -4,38 +4,6 @@ from enum import Enum
 import operator
 
 
-class LogColors:
-    DEBUG = "\033[94m"
-    INFO = "\033[92m"
-    WARNING = "\033[93m"
-    ERROR = "\033[91m"
-    RESET = "\033[0m"
-
-
-class ColoredFormatter(logging.Formatter):
-    LEVEL_COLOR = {
-        'DEBUG': LogColors.DEBUG,
-        'INFO': LogColors.INFO,
-        'WARNING': LogColors.WARNING,
-        'ERROR': LogColors.ERROR,
-        'CRITICAL': LogColors.ERROR,
-    }
-
-    def format(self, record):
-        color = self.LEVEL_COLOR.get(record.levelname, LogColors.RESET)
-        message = super().format(record)
-        return f"{color}{message}{LogColors.RESET}"
-
-
-handler = logging.StreamHandler()
-handler.setFormatter(
-    ColoredFormatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
-)
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.DEBUG)
-logger.handlers = [handler]
-
-
 class TipoComparacion(Enum):
     IGUAL = "=="
     DIFERENTE = "!="
@@ -84,12 +52,16 @@ class Proposicion:
     def add(self, tupla: Tuple[str, ...]):
         if len(tupla) != self.n:
             raise ValueError(f"Todas las tuplas deben tener {self.n} individuos")
+        if tupla in self.tuplas:
+            raise ValueError(f"La tupla {tupla} ya existe en {self.nombre}")
         self.tuplas.add(tupla)
-        logger.debug(f"[{self.nombre}] Added tuple {tupla}")
+        logging.getLogger("LOG").debug(f"[{self.nombre}] Added tuple {tupla}")
 
     def eliminar(self, tupla: Tuple[str, ...]):
+        if tupla not in self.tuplas:
+            raise ValueError(f"La tupla {tupla} no existe en {self.nombre}")
         self.tuplas.discard(tupla)
-        logger.debug(f"[{self.nombre}] Eliminada tupla {tupla}")
+        logging.getLogger("LOG").debug(f"[{self.nombre}] Eliminada tupla {tupla}")
 
     def existe(self, tupla: Tuple[str, ...]) -> bool:
         return tupla in self.tuplas
@@ -111,10 +83,14 @@ class BaseConocimiento:
         self.proposiciones: Dict[str, Proposicion] = {}
 
     def crear_categoria(self, nombre: str, esquema: Dict[str, type]):
+        if nombre in self.categorias:
+            raise ValueError(f"La categoría '{nombre}' ya existe")
         self.categorias[nombre] = Categoria(nombre, esquema)
         self.proposiciones[nombre] = Proposicion(nombre, 1)
 
     def crear_proposicion(self, nombre: str, n: int):
+        if nombre in self.proposiciones:
+            raise ValueError(f"La proposición '{nombre}' ya existe")
         self.proposiciones[nombre] = Proposicion(nombre, n)
 
     def asignar_individuo_a_categoria(
@@ -127,4 +103,6 @@ class BaseConocimiento:
             if clave not in cat.esquema or not isinstance(valor, cat.esquema[clave]):
                 raise ValueError(f"Atributo {clave} inválido para la categoría {categoria}")
         self.individuos.registrar(id_, atributos)
+        if self.proposiciones[categoria].existe((id_,)):
+            raise ValueError(f"El individuo '{id_}' ya está en la categoría '{categoria}'")
         self.proposiciones[categoria].add((id_,))

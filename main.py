@@ -15,5 +15,7 @@ if __name__ == "__main__":
 
     motor = MotorEjecucion(base)
 
-    motor.set_archivo("ejemplo.txt")
-    motor.cargar_archivo()
+    #motor.set_archivo("ejemplo.txt")
+   # motor.cargar_archivo()
+
+    motor.run_terminal()
