@@ -24,7 +24,15 @@ class CondicionSimple(Condicion):
     def validar(self, contexto: Dict[str, str], base: BaseConocimiento) -> bool:
         if self.nombre_proposicion not in base.proposiciones:
             raise ValueError(f"Proposición '{self.nombre_proposicion}' no existe")
-        tupla = tuple(contexto[v] for v in self.variables)
+        parametros = []
+        #Si es una variable, se sustituye por su valor en el contexto
+        #Si no, se deja como está, puede ser un valor literal o individuo
+        for v in self.variables:
+            if v not in contexto:
+                parametros.append(v)
+            else: 
+                parametros.append(contexto[v])
+        tupla = tuple(parametros)
         resultado = base.proposiciones[self.nombre_proposicion].existe(tupla)
         logger.debug(f"[{self.nombre_proposicion}] Validación simple {tupla} -> {resultado}")
         return resultado

@@ -14,8 +14,8 @@ elemento
     ;
 
 declaracion
-    : declCategoria ';'
-    | declProposicion ';'
+    : declCategoria ';' comentarioSimple?
+    | declProposicion ';' comentarioSimple?
     ;
 
 declCategoria
@@ -69,6 +69,9 @@ listaArgsPredicado
 paramPredicado
     : INDIVIDUO
     | VARIABLE
+    | STRING
+    | NUMBER
+    | BOOLEAN
     ;
 
 comparacion

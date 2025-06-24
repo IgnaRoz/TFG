@@ -1,6 +1,6 @@
 Categoria Usuario(libros_Prestados:int);
 Categoria Libro();
-Prop Prestamo(Usuario,Libro);
+Prop Prestamo(Usuario,Libro);// Relaciona un usuario con un libro prestado
 Prop Disponible(Libro);
 Prop Profesor(Usuario);
 Accion PrestarLibro(X,Y):
@@ -9,6 +9,7 @@ Entradas: X: Usuario, Y:Libro
 Descripción: Se le asignara al usuario X, el libro Y como prestamo
 """
 	Condiciones: 
+		Output("Esto es una condicion");
 		Usuario(X); //Comprueba que el individuo X es un usuario
 		OR(
 			X.libros_Prestados < 3 ; // Los libros prestados deben ser menos que 3
@@ -26,10 +27,12 @@ Entradas: X: Usuario, Y:Libro
 Descripción: Se le asignara al usuario X, el libro Y como prestamo
 """
 	Condiciones: 
+		Output("Esto es una condicion con la variable %1",X);
 		Usuario(X); //No debería hacer falta, se debería poder averiguar X apartir de UsuarioLibros
 		Libro(Y ); //Comprueba que el individuo Y es un libro
 		NOT(Disponible(Y)); //Comprueba que el libro Y no esta disponible
 	Consecuencias: 
+		Output("Esto es una consecuencia");
 		X.libros_Prestados -=1; //Decrementa el numero de libros prestados
 		Disponible(Y); // Ya esta disponible
 		DEL Prestamos(X,Y); //Elimina el registro del libro al usuario 

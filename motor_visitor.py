@@ -145,13 +145,22 @@ class MotorVisitor(gramaticaVisitor):
     def visitDeclProposicion(self, ctx: gramaticaParser.DeclProposicionContext):
         nombre = ctx.idName().getText()
         n = 0
+        descripcion = None
+        #comprobamos si en el contexto del padre hay un comentario simple
+        if ctx.parentCtx and ctx.parentCtx.comentarioSimple():
+            descripcion = ctx.parentCtx.comentarioSimple().getText()
+
         if ctx.listaIdentificadores():
             n = len(self.visit(ctx.listaIdentificadores()))
         try:
-            self.motor.crear_proposicion(nombre, n)
+            if descripcion:
+                self.motor.crear_proposicion(nombre, n, descripcion)
+            else: self.motor.crear_proposicion(nombre, n)
         except Exception as e:
             logger.error(str(e))
         return None
+
+
 
     def visitInicializacion(self, ctx: gramaticaParser.InicializacionContext):
         modo = ctx.getChild(0).getText()
@@ -194,6 +203,9 @@ class MotorVisitor(gramaticaVisitor):
             raise ValueError(
                 f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
             )
+        descripcion = None
+        if ctx.comentarioMultilineo():
+            descripcion = ctx.comentarioMultilineo().getText()
         nombre = ctx.idName().getText()
         params = []
         if ctx.listaParams():
@@ -209,7 +221,7 @@ class MotorVisitor(gramaticaVisitor):
             #pero de este modo no se lanzan los errores en consecuencias
             logger.warning(f"[Acción:{nombre}] No se definieron condiciones, acción ignorada")
             return None
-        regla = Regla(nombre, params, condiciones)
+        regla = Regla(nombre, params, condiciones,descripcion)
         consecuencias = []
         if ctx.listaConsecuencias():
             consecuencias = self.visitListaConsecuencias(ctx.listaConsecuencias())  

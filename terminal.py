@@ -9,7 +9,10 @@ COMANDOS = {
     'load': 'Carga un archivo de configuración.',
     'exit': 'Sale del programa.',
     'quit': 'Sale del programa.',
-    'help': 'Muestra esta ayuda.',
+    'help': 'Muestra esta ayuda. help accion <accion> para más detalles de una accion.',
+    'get': 'Obtiene todos los elementos de una proposición específica. Uso: get proposicion <nombre_proposicion>.',
+    'acciones': 'Lista todas las acciones disponibles.',
+    'proposiciones': 'Lista todas las proposiciones disponibles.',
 }
 class Terminal:
     
@@ -72,9 +75,82 @@ class Terminal:
             elif verb == 'add':
                 self.ejecutar_comando_add(prop, params)
         elif verb == 'help':
-            print("Comandos disponibles:")
-            for cmd, desc in COMANDOS.items():
-                print(f"  {cmd}: {desc}")
+
+            if len(tokens) > 1:
+
+                if tokens[1].lower() == "accion":
+                    nombre_accion = tokens[2] if len(tokens) > 2 else None
+                    if nombre_accion:
+                        accion = self.motor.get_accion(nombre_accion)
+                        if accion:
+                            print(f"Detalles de la acción '{nombre_accion}':")
+                            print(accion.descripcion)
+                        else:
+                            print(f"No se encontró la acción '{nombre_accion}'.")
+                elif tokens[1].lower() == "acciones":
+                    acciones = self.motor.get_acciones()
+                    if acciones:
+                        print("Acciones disponibles:")
+                        for accion in acciones:
+                            print(f"  {accion.nombre}")
+                    else:
+                        print("No hay acciones disponibles.")
+                elif tokens[1].lower() == "proposicion":
+                    nombre_proposicion = tokens[2] if len(tokens) > 2 else None
+                    if nombre_proposicion:
+                        proposicion = self.motor.get_proposicion(nombre_proposicion)
+                        if proposicion:
+                            print(f"Detalles de la proposición '{nombre_proposicion}':")
+                            print(proposicion.descripcion)
+                        else:
+                            print(f"No se encontró la proposición '{nombre_proposicion}'.")
+                elif tokens[1].lower() == "proposiciones":
+                    proposiciones = self.motor.get_proposiciones()
+                    if proposiciones:
+                        print("Proposiciones disponibles:")
+                        for prop in proposiciones:
+                            print(f"  {prop.nombre}: {prop.descripcion}")
+                    else:
+                        print("No hay proposiciones disponibles.")
+                
+                        
+            else:
+                print("Comandos disponibles:")
+                for cmd, desc in COMANDOS.items():
+                    print(f"  {cmd}: {desc}")
+        elif verb == 'get':
+            if len(tokens) < 2:
+                print("Uso: get <tipo> <nombre>")
+                return
+            tipo = tokens[1].lower()
+            nombre = tokens[2] if len(tokens) > 2 else None
+            if tipo == 'proposicion':
+                proposicion = self.motor.get_proposicion(nombre)
+                if proposicion:
+                    print(f"Elementos de la proposicion '{nombre}':")
+                    for tupla in proposicion.tuplas:
+                        print(f"elmento  {tupla}")
+                else:
+                    print(f"No se encontró la proposición '{nombre}'.")
+            else:
+                print(f"Tipo '{tipo}' no reconocido. Usa get proposicion <nombre>.")
+        elif verb == 'acciones':
+            acciones = self.motor.get_acciones()
+            if acciones:
+                print("Acciones disponibles:")
+                for accion in acciones:
+                    print(f"  {accion.nombre}: {accion.descripcion}")
+            else:
+                print("No hay acciones disponibles.")
+        elif verb == 'proposiciones':
+            proposiciones = self.motor.get_proposiciones()
+            if proposiciones:
+                print("Proposiciones disponibles:")
+                for prop in proposiciones:
+                    print(f"  {prop.nombre}: {prop.descripcion}")
+            else:
+                print("No hay proposiciones disponibles.")
+
         else:
             print(f"Error: comando '{verb}' no reconocido. Usa 'run', 'new', 'add' o 'load'.")
 

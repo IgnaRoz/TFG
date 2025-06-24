@@ -13,7 +13,7 @@ from consecuencias import (
     ConsecuenciaModificacion,
 )
 from reglas import Regla
-
+from system import Output
 
 class LogColors:
     DEBUG = "\033[94m"
@@ -68,7 +68,27 @@ class MotorEjecucion:
         self.reglas: List[Regla] = []
         self.acciones: List[Regla] = []
         self.archivo = None
+        #Incializar el motor
+        self.base.proposiciones["Output"] = Output()
 
+    def get_regla(self, nombre: str) -> Regla:
+        for regla in self.reglas:
+            if regla.nombre == nombre:
+                return regla
+        return None
+    def get_accion(self, nombre: str) -> Regla:
+        for accion in self.acciones:
+            if accion.nombre == nombre:
+                return accion
+        return None
+    def get_acciones(self) -> List[Regla]:
+        return self.acciones
+    def get_proposicion(self, nombre: str) -> str:
+        if nombre in self.base.proposiciones:
+            return self.base.proposiciones[nombre]
+        return None
+    def get_proposiciones(self) -> List[str]:
+        return list(self.base.proposiciones.values())
     def add_regla(self, regla: Regla, accion: bool = False):
         if accion:
             self.acciones.append(regla)
@@ -121,8 +141,8 @@ class MotorEjecucion:
     def crear_categoria(self, nombre: str, esquema: dict):
         self.base.crear_categoria(nombre, esquema)
 
-    def crear_proposicion(self, nombre: str, n: int):
-        self.base.crear_proposicion(nombre, n)
+    def crear_proposicion(self, nombre: str, n: int,descripcion: str = None):
+        self.base.crear_proposicion(nombre, n,descripcion)
 
     def nuevo_individuo(self, nombre: str, args: List):
         if nombre not in self.base.categorias:

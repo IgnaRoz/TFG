@@ -8,11 +8,12 @@ from consecuencias import Consecuencia
 
 
 class Regla:
-    def __init__(self, nombre: str, parametros: List[str], condiciones: List[Condicion]):
+    def __init__(self, nombre: str, parametros: List[str], condiciones: List[Condicion], descripcion: str = None):
         self.nombre = nombre
         self.parametros = parametros
         self.condiciones = condiciones
         self.consecuencias: List[Consecuencia] = []
+        self.descripcion = descripcion if descripcion else f"Proposición {nombre}: Sin descripción"
 
     def validar(self, valores: List[str], base: BaseConocimiento) -> bool:
         contexto = dict(zip(self.parametros, valores))

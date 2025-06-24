@@ -44,11 +44,12 @@ class Individuos:
 
 
 class Proposicion:
-    def __init__(self, nombre: str, n: int):
+    def __init__(self, nombre: str, n: int,descripcion: str = None ):
         self.nombre = nombre
         self.n = n
         self.tuplas: Set[Tuple[str, ...]] = set()
-
+        self.descripcion = descripcion if descripcion else f"Sin descripción"
+        
     def add(self, tupla: Tuple[str, ...]):
         if len(tupla) != self.n:
             raise ValueError(f"Todas las tuplas deben tener {self.n} individuos")
@@ -88,10 +89,10 @@ class BaseConocimiento:
         self.categorias[nombre] = Categoria(nombre, esquema)
         self.proposiciones[nombre] = Proposicion(nombre, 1)
 
-    def crear_proposicion(self, nombre: str, n: int):
+    def crear_proposicion(self, nombre: str, n: int,descripcion: str = None):
         if nombre in self.proposiciones:
             raise ValueError(f"La proposición '{nombre}' ya existe")
-        self.proposiciones[nombre] = Proposicion(nombre, n)
+        self.proposiciones[nombre] = Proposicion(nombre, n,descripcion)
 
     def asignar_individuo_a_categoria(
         self, id_: str, categoria: str, atributos: Dict[str, Union[str, int, bool]]
