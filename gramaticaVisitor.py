@@ -49,8 +49,18 @@ class gramaticaVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramaticaParser#bloquePropiedades.
+    def visitBloquePropiedades(self, ctx:gramaticaParser.BloquePropiedadesContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramaticaParser#listaIdentificadores.
     def visitListaIdentificadores(self, ctx:gramaticaParser.ListaIdentificadoresContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#listaPropiedades.
+    def visitListaPropiedades(self, ctx:gramaticaParser.ListaPropiedadesContext):
         return self.visitChildren(ctx)
 
 
@@ -71,6 +81,11 @@ class gramaticaVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by gramaticaParser#condicion.
     def visitCondicion(self, ctx:gramaticaParser.CondicionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#asignacionVariable.
+    def visitAsignacionVariable(self, ctx:gramaticaParser.AsignacionVariableContext):
         return self.visitChildren(ctx)
 
 
@@ -176,6 +191,26 @@ class gramaticaVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by gramaticaParser#inicializacion.
     def visitInicializacion(self, ctx:gramaticaParser.InicializacionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#bloqueValores.
+    def visitBloqueValores(self, ctx:gramaticaParser.BloqueValoresContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#listaParejasValor.
+    def visitListaParejasValor(self, ctx:gramaticaParser.ListaParejasValorContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#parejaValor.
+    def visitParejaValor(self, ctx:gramaticaParser.ParejaValorContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#valor.
+    def visitValor(self, ctx:gramaticaParser.ValorContext):
         return self.visitChildren(ctx)
 
 

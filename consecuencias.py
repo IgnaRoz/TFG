@@ -17,27 +17,73 @@ class Consecuencia(ABC):
 
 
 class ConsecuenciaAsignacion(Consecuencia):
-    def __init__(self, proposicion: str, parametros: List[Union[str, str]], variables: List[str]):
+    def __init__(self, proposicion: str,  variables: List[str]):
         super().__init__(variables)
         self.proposicion = proposicion
-        self.parametros = parametros
+        #self.parametros = parametros
 
     def ejecutar(self, contexto: Dict[str, str], base: BaseConocimiento):
-        tupla = tuple(contexto.get(p, p) for p in self.parametros)
+        #tupla = tuple(contexto.get(p, p) for p in self.variables)
         if self.proposicion not in base.proposiciones:
-            base.crear_proposicion(self.proposicion, len(tupla))
-        logger.info(f"[Accion] Add {tupla} to {self.proposicion}")
-        base.proposiciones[self.proposicion].add(tupla)
+            #No se debe permitir añadir elementos a una proposicion no registrada, ni crearse una nueva
+            raise ValueError("No se ha econtrado la prposicion")
+            #base.crear_proposicion(self.proposicion, len(tupla))
 
+        parametros = []
+        #Si es una variable, se sustituye por su valor en el contexto
+        #Si no, se deja como está, puede ser un valor literal o individuo
+        
+
+
+        for variable in self.variables:
+            if '.' in variable:
+                var,atr = variable.split('.',1)
+           
+                if var in contexto:
+                    if atr not in contexto[var].atributos:
+                        raise ValueError(f"El atributo {atr} no esta en la variable {var}")
+                    param = contexto[var].atributos[atr]
+                    parametros.append(param)
+                    continue  
+            else:
+                if variable in contexto:
+                    parametros.append(contexto[variable])
+                    continue                  
+            parametros.append(variable)
+
+
+        #for i_contexto in contexto:
+        #    
+        #    for variable in self.variables:
+        #        #si i_contexto es igual a la variable, se añade el valor de i_contexto al parametro. Si variable empieza por i_contexto seguido de punto, se busca el atributo en la variable
+        #        if i_contexto == variable:
+        #            parametros.append(contexto[i_contexto])
+        #            break
+        #        elif variable.startswith(i_contexto + "."):
+        #            #Si la variable es del tipo P.algo, se busca el atributo en el contexto
+        #            atributo = variable.split(".")[1]
+        #            if i_contexto in contexto:
+        #                parametros.append(contexto[i_contexto].atributos[atributo])
+        #            else:
+        #                raise ValueError(f"Variable '{i_contexto}' no encontrada en el contexto")
+        #            
+        #        else:
+        #            #Si no es ni variable, ni atributo, entonces se considera un valor basico
+        #            parametros.append(variable)
+#
+
+        tupla = tuple(parametros)
+        base.proposiciones[self.proposicion].add(tupla)
+        logger.info(f"[Accion] Add {tupla} to {self.proposicion}")
 
 class ConsecuenciaEliminacion(Consecuencia):
-    def __init__(self, proposicion: str, parametros: List[Union[str, str]], variables: List[str]):
+    def __init__(self, proposicion: str,  variables: List[str]):
         super().__init__(variables)
         self.proposicion = proposicion
-        self.parametros = parametros
+        #self.parametros = parametros
 
     def ejecutar(self, contexto: Dict[str, str], base: BaseConocimiento):
-        tupla = tuple(contexto.get(p, p) for p in self.parametros)
+        tupla = tuple(contexto.get(p, p) for p in self.variables)
         if self.proposicion not in base.proposiciones:
             raise ValueError(f"Proposición '{self.proposicion}' no existe")
         logger.info(f"[Accion] Eliminar {tupla} de {self.proposicion}")
@@ -48,7 +94,7 @@ class ConsecuenciaModificacion(Consecuencia):
     def __init__(
         self,
         objetivo: str,
-        atributo: str,
+        #atributo: str,
         operacion: TipoOperacion,
         valor: Union[str, int, Tuple[str, str]],
         atributo_valor: str = None,
@@ -56,12 +102,38 @@ class ConsecuenciaModificacion(Consecuencia):
     ):
         super().__init__(variables or [])
         self.objetivo = objetivo
-        self.atributo = atributo
+        #self.atributo = atributo
         self.operacion = operacion
         self.valor = valor
         self.atributo_valor = atributo_valor
 
     def ejecutar(self, contexto: Dict[str, str], base: BaseConocimiento):
+        
+        #Hay que crear contextos locales y eliminar las listas de los contextos
+
+        #De momento solo se coge el primer valor, por lo que no existen la multivariable en las consecuencias
+
+        #variable = contexto.get(self.objetivo)[0]
+
+        variable, atributo = self.objetivo.split('.',1)
+        if '.' in atributo:
+            raise ValueError("Un atributo no puede tener atributos")
+        if variable in contexto:
+            variable = contexto.get(variable)
+        else:
+            raise ValueError(f"No se ha econtrado econtrado la variable {variable} en el contexto")
+        if atributo not in variable.atributos:
+            raise ValueError(f"No se ha econtrado el atributo {atributo} para la variable {variable} en el contexto")
+        valor = self.valor
+        logger.info(f"[Accion] Modificar {variable}.{atributo} {self.operacion.value} {valor}")
+        if self.operacion == TipoOperacion.ASIGNACION:
+            variable.atributos[atributo] = valor
+        elif self.operacion == TipoOperacion.INCREMENTO:
+            variable.atributos[atributo] += valor
+        elif self.operacion == TipoOperacion.DECREMENTO:
+            variable.atributos[atributo] -= valor
+        return
+
         id_ = contexto.get(self.objetivo, self.objetivo)
         indiv = base.individuos.obtener(id_)
         if indiv is None:

@@ -44,28 +44,61 @@ class Individuos:
 
 
 class Proposicion:
-    def __init__(self, nombre: str, n: int,descripcion: str = None ):
+    def __init__(self, nombre: str, parametros:List[str],descripcion: str = None,atributos = None ):#Hay que incluir el nombre de los parametros
         self.nombre = nombre
-        self.n = n
-        self.tuplas: Set[Tuple[str, ...]] = set()
+        self.n = len(parametros)
+        self.parametros = parametros
+        self.elementos = {}
         self.descripcion = descripcion if descripcion else f"Sin descripción"
+        if atributos:
+            self.atributos = atributos
+        else:
+            self.atributos = []
         
-    def add(self, tupla: Tuple[str, ...]):
-        if len(tupla) != self.n:
+    def add(self, tupla: Tuple[str, ...],atributos =None):
+        if len(tupla) != self.n :
             raise ValueError(f"Todas las tuplas deben tener {self.n} individuos")
-        if tupla in self.tuplas:
+        if tupla in self.elementos.keys():
             raise ValueError(f"La tupla {tupla} ya existe en {self.nombre}")
-        self.tuplas.add(tupla)
-        logging.getLogger("LOG").debug(f"[{self.nombre}] Added tuple {tupla}")
+
+        
+        atributos = {} if not atributos else atributos
+        
+        #vamos a exigir todos los atributos
+        for nombre_atributo in self.atributos:
+            
+            if not nombre_atributo in atributos.keys():
+                raise ValueError(f"No se ha econtrado el atributo{nombre_atributo} para la proposicion{self.nombre}")
+
+        #Tambien vamos a exigir es que no se añadan atributos nuevos
+        for atributo in atributos:
+            if atributo not in self.atributos:
+                raise ValueError(f"La proposicion {self.nombre} no tiene el atributo {atributo}")
+
+        for i,parametro in enumerate(self.parametros):
+            atributos[parametro] = tupla[i]
+
+        elemento = ElementoProposicion(self.nombre, tupla,atributos)
+        self.elementos[tupla] = elemento  
+
+        #self.tuplas.add(tupla)
+        logging.getLogger("LOG").debug(f"[{self.nombre}] Added tuple {elemento.tupla} with attributes {elemento.atributos}")
+        return elemento
 
     def eliminar(self, tupla: Tuple[str, ...]):
-        if tupla not in self.tuplas:
+        if tupla not in self.elementos.keys():
             raise ValueError(f"La tupla {tupla} no existe en {self.nombre}")
-        self.tuplas.discard(tupla)
+        self.elementos.pop(tupla)
         logging.getLogger("LOG").debug(f"[{self.nombre}] Eliminada tupla {tupla}")
 
     def existe(self, tupla: Tuple[str, ...]) -> bool:
-        return tupla in self.tuplas
+        return tupla in self.elementos
+class ElementoProposicion:
+    def __init__(self, nombre_prop: str, tupla,atributos):
+        self.nombre_prop = nombre_prop
+        self.tupla = tupla
+        self.atributos = atributos 
+
 
 
 class Categoria:
@@ -89,10 +122,10 @@ class BaseConocimiento:
         self.categorias[nombre] = Categoria(nombre, esquema)
         self.proposiciones[nombre] = Proposicion(nombre, 1)
 
-    def crear_proposicion(self, nombre: str, n: int,descripcion: str = None):
+    def crear_proposicion(self, nombre: str, parametros: List[str],descripcion: str = None,atributos:Dict =None):
         if nombre in self.proposiciones:
             raise ValueError(f"La proposición '{nombre}' ya existe")
-        self.proposiciones[nombre] = Proposicion(nombre, n,descripcion)
+        self.proposiciones[nombre] = Proposicion(nombre, parametros,descripcion,atributos=atributos)#Añadir luego parametros y atributos
 
     def asignar_individuo_a_categoria(
         self, id_: str, categoria: str, atributos: Dict[str, Union[str, int, bool]]

@@ -6,7 +6,7 @@ from gramaticaVisitor import gramaticaVisitor
 from gramaticaParser import gramaticaParser
 from motorEjecucion import MotorEjecucion, logger
 from base import TipoComparacion, TipoOperacion
-from condiciones import CondicionSimple, CondicionComparacion, CondicionLogica, CondicionNegacion
+from condiciones import CondicionSimple, CondicionComparacion, CondicionLogica, CondicionNegacion, CondicionAsignacion
 from consecuencias import (
     ConsecuenciaAsignacion,
     ConsecuenciaEliminacion,
@@ -144,21 +144,47 @@ class MotorVisitor(gramaticaVisitor):
 
     def visitDeclProposicion(self, ctx: gramaticaParser.DeclProposicionContext):
         nombre = ctx.idName().getText()
-        n = 0
+        lista_parametros = []
         descripcion = None
         #comprobamos si en el contexto del padre hay un comentario simple
         if ctx.parentCtx and ctx.parentCtx.comentarioSimple():
             descripcion = ctx.parentCtx.comentarioSimple().getText()
 
         if ctx.listaIdentificadores():
-            n = len(self.visit(ctx.listaIdentificadores()))
+            lista_parametros =self.visit(ctx.listaIdentificadores())
+            
+
+
+        atributos = {}
+        if ctx.bloquePropiedades():
+            atributos = self.visit(ctx.bloquePropiedades())
         try:
             if descripcion:
-                self.motor.crear_proposicion(nombre, n, descripcion)
-            else: self.motor.crear_proposicion(nombre, n)
+                self.motor.crear_proposicion(nombre,lista_parametros, descripcion=descripcion,atributos=atributos)
+            else: self.motor.crear_proposicion(nombre, lista_parametros,atributos=atributos)
         except Exception as e:
             logger.error(str(e))
         return None
+    
+    def visitBloquePropiedades(self, ctx):
+        if any(isinstance(c, ErrorNodeImpl) for c in (getattr(ctx, 'children', None) or [])):
+            raise ValueError(
+                f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
+            )
+        if ctx.listaPropiedades():
+            return self.visit(ctx.listaPropiedades())
+        else:
+            return []
+        
+    def visitListaPropiedades(self, ctx):
+        if any(isinstance(c, ErrorNodeImpl) for c in (getattr(ctx, 'children', None) or [])):
+            raise ValueError(
+                f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
+            )
+        atributos =[]
+        for atributo in ctx.idName():
+            atributos.append(atributo.getText())
+        return atributos
 
 
 
@@ -166,15 +192,54 @@ class MotorVisitor(gramaticaVisitor):
         modo = ctx.getChild(0).getText()
         nombre = ctx.idName().getText()
         args = [self._parse_arg_lit(a) for a in ctx.argLit()]
+
+        atributos={}
+        if ctx.bloqueValores():
+            atributos = self.visit(ctx.bloqueValores())
         try:
-            if modo == 'new':
+            if modo == 'new':#BORRAR
                 self.motor.nuevo_individuo(nombre, args)
             elif modo == 'add':
-                self.motor.add_proposicion(nombre, args)
+                #self.motor.add_proposicion(nombre, args,atributos=atributos)
+                self.motor.base.proposiciones[nombre].add(tuple(args),atributos=atributos)
         except Exception as e:
             logger.error(str(e))
         return None
+    def visitBloqueValores(self, ctx):
+         
+         if ctx.listaParejasValor():
+            retorno = self.visit(ctx.listaParejasValor())
 
+            return retorno 
+         return {}   
+
+         #return self.visit(ctx.listaParejasValor()) if ctx.listaParejasValor() else {}
+    def visitListaParejasValor(self, ctx):
+        return {k: v for k, v in (self.visit(p) for p in ctx.parejaValor())}
+
+    def visitParejaValor(self, ctx):
+        nombre =   ctx.idName().getText()
+        valor = self.visit(ctx.valor())
+        print(valor)
+        return nombre,valor
+    def visitValor(self, ctx):
+        if ctx.NUMBER():
+            return int(ctx.NUMBER().getText())
+
+        #  STRING → quitar comillas (“…” o "…")
+        if ctx.STRING():
+            return _texto_string(ctx.STRING().getText())
+
+        #  BOOLEAN → True/False
+        if ctx.BOOLEAN():
+            return ctx.BOOLEAN().getText().lower() == "true"
+
+        #  idName → nombre tal cual
+        if ctx.idName():
+            return ctx.idName().getText()
+
+        #  Fallback
+        return ctx.getText()
     def visitEjecucion(self, ctx: gramaticaParser.EjecucionContext):
         nombre = ctx.idName().getText()
         args = [self._parse_arg_lit(a) for a in ctx.argLit()]
@@ -255,6 +320,8 @@ class MotorVisitor(gramaticaVisitor):
             condicion = self.visitComparacion(ctx.comparacion())
         elif ctx.operacionLogica():
             condicion = self.visitOperacionLogica(ctx.operacionLogica())
+        elif ctx.asignacionVariable():
+            condicion = self.visitAsignacionVariable(ctx.asignacionVariable())
 
         return condicion
     def visitOperacionLogica(self, ctx: gramaticaParser.OperacionLogicaContext):
@@ -290,6 +357,17 @@ class MotorVisitor(gramaticaVisitor):
         condicion = CondicionComparacion(izq, op, der, vars_)
         self.visitChildren(ctx)
         return condicion
+    
+
+    def visitAsignacionVariable(self, ctx):
+
+        variable_asignacion = ctx.VARIABLE().getText()
+        predicado,variables = self._parse_predicado(ctx.predicado())
+        condicion = None
+        return CondicionAsignacion(variables,variable_asignacion,predicado)
+        return super().visitAsignacionVariable(ctx)
+
+
     def visitListaConsecuencias(self, ctx: gramaticaParser.ListaConsecuenciasContext):
         consecuencias = []
         for c in ctx.consecuencia():
@@ -301,19 +379,19 @@ class MotorVisitor(gramaticaVisitor):
         consecuencia = None
         if ctx.asignacion():
             asign = ctx.asignacion()
-            objetivo, atributo = self._parse_operando(asign.operandoIzq())
+            objetivo  = self._parse_operando(asign.operandoIzq())
             valor = self._parse_operando(asign.operandoDrc())
             op = TipoOperacion(asign.OpAsign().getText())
             vars_ = self._collect_vars(objetivo, valor)
-            consecuencia = ConsecuenciaModificacion(objetivo, atributo, op, valor, variables=vars_)
+            consecuencia = ConsecuenciaModificacion(objetivo, op, valor, variables=vars_)
         elif ctx.borrado():
             prop, args = self._parse_predicado(ctx.borrado().predicado())
-            vars_ = [a for a in args if a[:1].isupper()]
-            consecuencia = ConsecuenciaEliminacion(prop, args, vars_)
+            #vars_ = [a for a in args if a[:1].isupper()]
+            consecuencia = ConsecuenciaEliminacion(prop, args)
         elif ctx.predicado():
             prop, args = self._parse_predicado(ctx.predicado())
-            vars_ = [a for a in args if a[:1].isupper()]
-            consecuencia = ConsecuenciaAsignacion(prop, args, vars_)
+            #vars_ = [a for a in args if a[:1].isupper()]
+            consecuencia = ConsecuenciaAsignacion(prop, args)
         return consecuencia
     
     def visitErrorNode(self, node: ErrorNode):

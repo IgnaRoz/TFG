@@ -1,4 +1,5 @@
 from typing import List
+from datetime import date, timedelta
 from terminal import Terminal
 import logging
 from base import (
@@ -6,7 +7,7 @@ from base import (
     TipoComparacion,
     TipoOperacion,
 )
-from condiciones import CondicionSimple, CondicionComparacion
+from condiciones import CondicionSimple, CondicionComparacion, CondicionAsignacion
 from consecuencias import (
     ConsecuenciaAsignacion,
     ConsecuenciaEliminacion,
@@ -94,7 +95,7 @@ class MotorEjecucion:
             self.acciones.append(regla)
         else:
             self.reglas.append(regla)
-
+    #Modificar, deberia poder obtener directamente la regla por su nombre(opcional)
     def ejecutar_accion(self, nombre_accion: str, valores: List[str]):
         for regla in self.acciones:
             if regla.nombre == nombre_accion:
@@ -141,8 +142,8 @@ class MotorEjecucion:
     def crear_categoria(self, nombre: str, esquema: dict):
         self.base.crear_categoria(nombre, esquema)
 
-    def crear_proposicion(self, nombre: str, n: int,descripcion: str = None):
-        self.base.crear_proposicion(nombre, n,descripcion)
+    def crear_proposicion(self, nombre: str, parametros:List[str],descripcion: str = None, atributos = None):
+        self.base.crear_proposicion(nombre, parametros,descripcion,atributos=atributos)
 
     def nuevo_individuo(self, nombre: str, args: List):
         if nombre not in self.base.categorias:
@@ -152,76 +153,62 @@ class MotorEjecucion:
         id_ = args[0] if args else nombre
         self.base.asignar_individuo_a_categoria(id_, nombre, atributos)
 
-    def add_proposicion(self, nombre: str, valores: List):
+    def add_proposicion(self, nombre: str, valores: List,atributos=None):
         if nombre in self.base.proposiciones:
-            self.base.proposiciones[nombre].add(tuple(valores))
+            elemento=self.base.proposiciones[nombre].add(tuple(valores),atributos=atributos)
+            #añadir a individuos
 
 
 if __name__ == "__main__":
     base = BaseConocimiento()
-    base.crear_categoria("Usuario", {"nombre": str, "libros_prestados": int})
-    base.crear_categoria("Libro", {"titulo": str})
+    #base.crear_categoria("Usuario", {"nombre": str, "libros_prestados": int})
+    #base.crear_categoria("Libro", {"titulo": str})
 
-    base.crear_proposicion("Prestamo", 2)
-    base.crear_proposicion("LibroPrestado", 1)
-    base.crear_proposicion("Disponible", 1)
-
-    base.asignar_individuo_a_categoria("u1", "Usuario", {"nombre": "Juan", "libros_prestados": 0})
-    base.asignar_individuo_a_categoria("u2", "Usuario", {"nombre": "Ana", "libros_prestados": 0})
-    base.asignar_individuo_a_categoria("l1", "Libro", {"titulo": "El Quijote"})
-    base.asignar_individuo_a_categoria("l2", "Libro", {"titulo": "1984"})
-    base.asignar_individuo_a_categoria("l3", "Libro", {"titulo": "Fundación"})
-    base.asignar_individuo_a_categoria("l4", "Libro", {"titulo": "Dune"})
+    base.crear_proposicion("Prestamo", ["Usuario", "Libro"],atributos=["fecha_devolucion"])
+    base.crear_proposicion("LibroPrestado", ["Libro"])
+    base.crear_proposicion("Disponible", ["Libro"])
+    base.crear_proposicion("Usuario", ["Usuario"])
+    base.crear_proposicion("Libro", ["Libro"])
+   # base.asignar_individuo_a_categoria("u1", "Usuario", {"nombre": "Juan", "libros_prestados": 0})
+   # base.asignar_individuo_a_categoria("u2", "Usuario", {"nombre": "Ana", "libros_prestados": 0})
+   # base.asignar_individuo_a_categoria("l1", "Libro", {"titulo": "El Quijote"})
+   # base.asignar_individuo_a_categoria("l2", "Libro", {"titulo": "1984"})
+   # base.asignar_individuo_a_categoria("l3", "Libro", {"titulo": "Fundación"})
+   # base.asignar_individuo_a_categoria("l4", "Libro", {"titulo": "Dune"})
 
     base.proposiciones["Disponible"].add(("l1",))
     base.proposiciones["Disponible"].add(("l2",))
     base.proposiciones["Disponible"].add(("l3",))
     base.proposiciones["Disponible"].add(("l4",))
 
+    base.proposiciones["Prestamo"].add(("u1", "l1"))
+    base.proposiciones["Prestamo"].add(("u1", "l2"),atributos={"fecha_devolucion":date.today() + timedelta(days=15)})    
+    base.proposiciones["Prestamo"].add(("u1", "l3"),atributos={"fecha_devolucion":date.today() + timedelta(days=15)})
+
     motor = MotorEjecucion(base)
 
     r1 = Regla(
         "prestar_libro",
-        ["u", "l"],
+        ["u"],
         [
-            CondicionSimple("Usuario", ["u"]),
-            CondicionSimple("Libro", ["l"]),
-            CondicionSimple("Disponible", ["l"]),
-            CondicionComparacion(("u", "libros_prestados"), TipoComparacion.MENOR, 3, ["u"]),
+            CondicionAsignacion(["u", "_"], "P","Prestamo"),
+            CondicionSimple("Output", ["Condicion:Prestamo Usuario {0} con libro {1}","P.Usuario","P.Libro"])
         ],
     )
-    r1.consecuencias.append(ConsecuenciaAsignacion("Prestamo", ["u", "l"], ["u", "l"]))
-    r1.consecuencias.append(
-        ConsecuenciaModificacion("u", "libros_prestados", TipoOperacion.INCREMENTO, 1, variables=["u"])
-    )
-    r1.consecuencias.append(ConsecuenciaAsignacion("LibroPrestado", ["l"], ["l"]))
-    r1.consecuencias.append(ConsecuenciaEliminacion("Disponible", ["l"], ["l"]))
+    r1.consecuencias.append(ConsecuenciaAsignacion("Output", ["Consecuencia:Prestamo Usuario {0} con libro {1} y fecha de devolucion {2}","P.Usuario","P.Libro","P.fecha_devolucion"]))
     motor.add_regla(r1, accion=True)
 
-    r2 = Regla(
-        "devolver_libro",
-        ["u", "l"],
-        [CondicionSimple("Prestamo", ["u", "l"])],
-    )
-    r2.consecuencias.append(ConsecuenciaEliminacion("Prestamo", ["u", "l"], ["u", "l"]))
-    r2.consecuencias.append(
-        ConsecuenciaModificacion("u", "libros_prestados", TipoOperacion.DECREMENTO, 1, variables=["u"])
-    )
-    r2.consecuencias.append(ConsecuenciaEliminacion("LibroPrestado", ["l"], ["l"]))
-    r2.consecuencias.append(ConsecuenciaAsignacion("Disponible", ["l"], ["l"]))
-    motor.add_regla(r2, accion=True)
-
-    motor.ejecutar_accion("prestar_libro", ["u1", "l1"])
-    motor.ejecutar_accion("prestar_libro", ["u1", "l2"])
-    motor.ejecutar_accion("prestar_libro", ["u1", "l3"])
-    motor.ejecutar_accion("prestar_libro", ["u1", "l4"])  # debe fallar, ya tiene 3 libros
-    motor.ejecutar_accion("devolver_libro", ["u1", "l1"])
-    motor.ejecutar_accion("prestar_libro", ["u1", "l4"])  # ahora sí debe funcionar
-    motor.ejecutar_accion("prestar_libro", ["u2", "l2"])  # debe fallar, l2 está prestado
-    motor.ejecutar_accion("devolver_libro", ["u1", "l2"])
-    motor.ejecutar_accion("prestar_libro", ["u2", "l2"])  # ahora sí debe funcionar
-
-    print("Préstamos:", base.proposiciones["Prestamo"].tuplas)
-    print("LibroPrestado:", base.proposiciones["LibroPrestado"].tuplas)
-    print("Disponible:", base.proposiciones["Disponible"].tuplas)
-    print("Usuarios:", base.individuos.individuos)
+    motor.ejecutar_accion("prestar_libro", ["u1"])
+    #motor.ejecutar_accion("prestar_libro", ["u1", "l2"])
+    #motor.ejecutar_accion("prestar_libro", ["u1", "l3"])
+    #motor.ejecutar_accion("prestar_libro", ["u1", "l4"])  # debe fallar, ya tiene 3 libros
+    #motor.ejecutar_accion("devolver_libro", ["u1", "l1"])
+    #motor.ejecutar_accion("prestar_libro", ["u1", "l4"])  # ahora sí debe funcionar
+    #motor.ejecutar_accion("prestar_libro", ["u2", "l2"])  # debe fallar, l2 está prestado
+    #motor.ejecutar_accion("devolver_libro", ["u1", "l2"])
+    #motor.ejecutar_accion("prestar_libro", ["u2", "l2"])  # ahora sí debe funcionar
+#
+    #print("Préstamos:", base.proposiciones["Prestamo"].tuplas)
+    #print("LibroPrestado:", base.proposiciones["LibroPrestado"].tuplas)
+    #print("Disponible:", base.proposiciones["Disponible"].tuplas)
+    #print("Usuarios:", base.individuos.individuos)

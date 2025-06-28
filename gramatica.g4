@@ -34,11 +34,18 @@ tipoBasico
     ;
 
 declProposicion
-    : 'Prop' idName '(' listaIdentificadores? ')'
+    : 'Prop' idName '(' listaIdentificadores? ')' bloquePropiedades? 
+    ;
+bloquePropiedades
+    : '{' listaPropiedades? '}'            
     ;
 listaIdentificadores
     : idName (',' idName)*
     ;
+listaPropiedades
+    : idName (',' idName)*           
+    ;
+
 
 accion
     : 'Accion' idName '(' listaParams? ')' ':'
@@ -58,8 +65,11 @@ condicion
     : predicado
     | comparacion
     | operacionLogica
+    | asignacionVariable
     ;
-
+asignacionVariable
+    : VARIABLE '=' predicado
+    ;
 predicado
     : idName '(' listaArgsPredicado? ')'
     ;
@@ -86,8 +96,9 @@ OpComp
     | '>=' 
     ;
 
+
 operando
-    : VARIABLE '.' idName        # operandoVarAttr
+    : VARIABLE '.' idName        # operandoVarAttr //No llega a entrar porque variable.atributo tambien es una variable. Pero no importa
     | INDIVIDUO '.' idName       # operandoIndAttr
     | INDIVIDUO                  # operandoInd
     | VARIABLE                   # operandoVar
@@ -121,8 +132,8 @@ asignacion
     : operandoIzq OpAsign operandoDrc
     ;
 operandoIzq
-    : VARIABLE '.' idName
-    | INDIVIDUO '.' idName
+    : VARIABLE
+    | INDIVIDUO
     ;
 operandoDrc
     : operandoIzq
@@ -139,12 +150,31 @@ borrado
     ;
 
 inicializacion
-    : ('new' | 'add') idName '(' argLit (',' argLit)* ')' ';'
+    : ('add') idName '(' argLit (',' argLit)* ')' bloqueValores? ';'
     ;
+
+bloqueValores
+    : '{' listaParejasValor? '}'
+    ;
+
+listaParejasValor
+    : parejaValor (',' parejaValor)*
+    ;
+
+parejaValor
+    : idName '=' valor
+    ;   
+
+valor                           
+    : NUMBER
+    | STRING
+    | BOOLEAN
+    ; 
 argLit
     : STRING
     | NUMBER
     ;
+
 
 ejecucion
     : 'Run' idName '(' argLit (',' argLit)* ')' ';'
@@ -199,9 +229,10 @@ INDIVIDUO
 
 // variable = identificador que empieza por mayúscula
 VARIABLE
-    : LETTER_U (LETTER | DIGIT | '_')*
+    : LETTER_U (LETTER | DIGIT | '_' | '.')*
+    | '_'
     ;
-
+    
 // para todo nombre genérico (categorias, props, acciones…)
 idName
     : INDIVIDUO

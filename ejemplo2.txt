@@ -1,0 +1,39 @@
+Prop Prestamos(Usuario,Libro){fecha_devolucion};
+Prop Usuario(Usuario){libros_Prestados};
+Prop Profesor(Usuario);
+Prop Libro(Libro);
+Prop Disponible(Libro);
+
+Accion PrestarLibro(U,L):
+    Condiciones:
+        P = Prestamos(U,_);
+        Output("Condicion:Prestamo Usuario {0} con libro {1}",P.Usuario,P.Libro);
+        P.fecha_devolucion == 1;
+    Consecuencias:
+        Output("Consecuencia:Prestamo Usuario {0} con libro {1}",P.Usuario,P.Libro);
+
+
+
+//Inicializacion
+add Usuario(“nacho”){libros_Prestados=0};
+add Profesor(“nacho”); // Nacho es profesor, no tiene limite de libros
+add Usuario(“juan”){libros_Prestados=0};
+add Libro(“El señor de los anillos”);
+//add Libro(“El señor de los anillos”);
+add Disponible(“El señor de los anillos”); // Marca como disponible
+add Libro(“El Quijote”);
+//add Libro(“El Quijote”);
+add Disponible(“El Quijote”); // Marca como disponible
+add Libro(“1984”);
+//add Libro(“1984”);
+add Disponible(“1984”); // Marca como disponible
+add Libro(“Dune”);
+//add Libro(“Dune”);
+add Disponible(“Dune”); // Marca como disponible
+
+add Prestamos("nacho",“El señor de los anillos”){fecha_devolucion=0};
+add Prestamos("nacho",“1984”){fecha_devolucion=1};
+add Prestamos("nacho",“Dune”){fecha_devolucion=1};
+
+//Test
+Run PrestarLibro(“nacho”, “El señor de los anillos”);
