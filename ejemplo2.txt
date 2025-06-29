@@ -7,7 +7,9 @@ Prop Disponible(Libro);
 Accion PrestarLibro(U,L):
     Condiciones:
         P = Prestamos(U,_);
-        Output("Condicion:Prestamo Usuario {0} con libro {1}",P.Usuario,P.Libro);
+        Profesor(P.Usuario);
+        N = Usuario(nacho);
+        Output("Condicion{2}:Prestamo Usuario {0} con libro {1}",P.Usuario,P.Libro,N.Usuario);
         P.fecha_devolucion == 1;
     Consecuencias:
         Output("Consecuencia:Prestamo Usuario {0} con libro {1}",P.Usuario,P.Libro);
@@ -32,7 +34,7 @@ add Libro(“Dune”);
 add Disponible(“Dune”); // Marca como disponible
 
 add Prestamos("nacho",“El señor de los anillos”){fecha_devolucion=0};
-add Prestamos("nacho",“1984”){fecha_devolucion=1};
+add Prestamos("juan",“1984”){fecha_devolucion=1};
 add Prestamos("nacho",“Dune”){fecha_devolucion=1};
 
 //Test

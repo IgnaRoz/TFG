@@ -63,9 +63,9 @@ class Regla:
                 
                 for valor in valores_var_mul:
                     #El contexto local no es un diccionario de listas, sino un diccionario de valores, por lo que se debe crear un nuevo contexto local con el valor de la variable multiple
-                    contexto_local = {k: v[0] for k, v in contexto_local.items() if k != var_mul}#El contexto local es el contexto original sin la variable multiple
-                    contexto_local[var_mul] = valor
-                    contextos_locales.append(contexto_local)
+                    contexto_local_aux = {k: v[0] for k, v in contexto_local.items() if k != var_mul}#El contexto local es el contexto original sin la variable multiple
+                    contexto_local_aux[var_mul] = valor
+                    contextos_locales.append(contexto_local_aux)
             else:
                 #Si no hay variable multiple, el contexto local es igual al contexto original pero sin listas
                 contexto_local = {k: v[0] for k, v in contexto_local.items()}#El contexto local es el contexto original sin listas

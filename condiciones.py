@@ -27,23 +27,41 @@ class CondicionSimple(Condicion):
         parametros = []
         #Si es una variable, se sustituye por su valor en el contexto
         #Si no, se deja como está, puede ser un valor literal o individuo
-        for i_contexto in contexto:
-            for variable in self.variables:
-                #si i_contexto es igual a la variable, se añade el valor de i_contexto al parametro. Si variable empieza por i_contexto seguido de punto, se busca el atributo en la variable
+        #for i_contexto in contexto:
+        #    for variable in self.variables:
+        #        #si i_contexto es igual a la variable, se añade el valor de i_contexto al parametro. Si variable empieza por i_contexto seguido de punto, se busca el atributo en la variable
+        #        if i_contexto == variable:
+        #            parametros.append(contexto[i_contexto])
+        #            break
+        #        elif variable.startswith(i_contexto + "."):
+        #            #Si la variable es del tipo P.algo, se busca el atributo en el contexto
+        #            atributo = variable.split(".")[1]
+        #            if i_contexto in contexto:
+        #                parametros.append(contexto[i_contexto].atributos[atributo])
+        #            else:
+        #                raise ValueError(f"Variable '{i_contexto}' no encontrada en el contexto")
+        #            
+        #        else:
+        #            parametros.append(variable)
+
+        for variable in self.variables:
+            aux = False
+            for i_contexto in contexto:
                 if i_contexto == variable:
                     parametros.append(contexto[i_contexto])
+                    aux = True
                     break
-                elif variable.startswith(i_contexto + "."):
-                    #Si la variable es del tipo P.algo, se busca el atributo en el contexto
-                    atributo = variable.split(".")[1]
-                    if i_contexto in contexto:
+                elif variable.startswith(i_contexto+'.'):
+                    var, atributo = variable.split('.',1)
+                    if var == i_contexto and atributo in contexto[i_contexto].atributos:
                         parametros.append(contexto[i_contexto].atributos[atributo])
-                    else:
-                        raise ValueError(f"Variable '{i_contexto}' no encontrada en el contexto")
-                    
-                else:
-                    parametros.append(variable)
+                        aux = True
+                        break
+            if not aux:                    
+                parametros.append(variable)
 
+
+                    
 
 
         tupla = tuple(parametros)
