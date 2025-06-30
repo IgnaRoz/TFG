@@ -107,14 +107,14 @@ OpComp
 
 
 operando
-    : funcion                    # operandoFunc
-    | VARIABLE '.' idName        # operandoVarAttr //No llega a entrar porque variable.atributo tambien es una variable. Pero no importa
-    | INDIVIDUO '.' idName       # operandoIndAttr
-    | INDIVIDUO                  # operandoInd
-    | VARIABLE                   # operandoVar
-    | NUMBER                     # operandoNum
-    | STRING                     # operandoStr
-    | BOOLEAN                    # operandoBool
+    : funcion                    
+    | VARIABLE '.' idName        
+    | INDIVIDUO '.' idName       
+    | INDIVIDUO                  
+    | VARIABLE                   
+    | NUMBER                     
+    | STRING                     
+    | BOOLEAN                    
     ;
 funcion
     : idName  '.' idName '(' listaArgsFuncion? ')' //hay que añadir una regla semantica para que no se pueda incluir una funcion dentro de una funcion

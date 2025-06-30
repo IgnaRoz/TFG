@@ -1692,149 +1692,38 @@ class gramaticaParser ( Parser ):
             super().__init__(parent, invokingState)
             self.parser = parser
 
-
-        def getRuleIndex(self):
-            return gramaticaParser.RULE_operando
-
-     
-        def copyFrom(self, ctx:ParserRuleContext):
-            super().copyFrom(ctx)
-
-
-
-    class OperandoVarAttrContext(OperandoContext):
-
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a gramaticaParser.OperandoContext
-            super().__init__(parser)
-            self.copyFrom(ctx)
-
-        def VARIABLE(self):
-            return self.getToken(gramaticaParser.VARIABLE, 0)
-        def idName(self):
-            return self.getTypedRuleContext(gramaticaParser.IdNameContext,0)
-
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitOperandoVarAttr" ):
-                return visitor.visitOperandoVarAttr(self)
-            else:
-                return visitor.visitChildren(self)
-
-
-    class OperandoFuncContext(OperandoContext):
-
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a gramaticaParser.OperandoContext
-            super().__init__(parser)
-            self.copyFrom(ctx)
-
         def funcion(self):
             return self.getTypedRuleContext(gramaticaParser.FuncionContext,0)
 
 
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitOperandoFunc" ):
-                return visitor.visitOperandoFunc(self)
-            else:
-                return visitor.visitChildren(self)
+        def VARIABLE(self):
+            return self.getToken(gramaticaParser.VARIABLE, 0)
 
-
-    class OperandoIndAttrContext(OperandoContext):
-
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a gramaticaParser.OperandoContext
-            super().__init__(parser)
-            self.copyFrom(ctx)
-
-        def INDIVIDUO(self):
-            return self.getToken(gramaticaParser.INDIVIDUO, 0)
         def idName(self):
             return self.getTypedRuleContext(gramaticaParser.IdNameContext,0)
 
 
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitOperandoIndAttr" ):
-                return visitor.visitOperandoIndAttr(self)
-            else:
-                return visitor.visitChildren(self)
-
-
-    class OperandoVarContext(OperandoContext):
-
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a gramaticaParser.OperandoContext
-            super().__init__(parser)
-            self.copyFrom(ctx)
-
-        def VARIABLE(self):
-            return self.getToken(gramaticaParser.VARIABLE, 0)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitOperandoVar" ):
-                return visitor.visitOperandoVar(self)
-            else:
-                return visitor.visitChildren(self)
-
-
-    class OperandoNumContext(OperandoContext):
-
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a gramaticaParser.OperandoContext
-            super().__init__(parser)
-            self.copyFrom(ctx)
+        def INDIVIDUO(self):
+            return self.getToken(gramaticaParser.INDIVIDUO, 0)
 
         def NUMBER(self):
             return self.getToken(gramaticaParser.NUMBER, 0)
 
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitOperandoNum" ):
-                return visitor.visitOperandoNum(self)
-            else:
-                return visitor.visitChildren(self)
-
-
-    class OperandoBoolContext(OperandoContext):
-
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a gramaticaParser.OperandoContext
-            super().__init__(parser)
-            self.copyFrom(ctx)
+        def STRING(self):
+            return self.getToken(gramaticaParser.STRING, 0)
 
         def BOOLEAN(self):
             return self.getToken(gramaticaParser.BOOLEAN, 0)
 
+        def getRuleIndex(self):
+            return gramaticaParser.RULE_operando
+
         def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitOperandoBool" ):
-                return visitor.visitOperandoBool(self)
+            if hasattr( visitor, "visitOperando" ):
+                return visitor.visitOperando(self)
             else:
                 return visitor.visitChildren(self)
 
-
-    class OperandoStrContext(OperandoContext):
-
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a gramaticaParser.OperandoContext
-            super().__init__(parser)
-            self.copyFrom(ctx)
-
-        def STRING(self):
-            return self.getToken(gramaticaParser.STRING, 0)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitOperandoStr" ):
-                return visitor.visitOperandoStr(self)
-            else:
-                return visitor.visitChildren(self)
-
-
-    class OperandoIndContext(OperandoContext):
-
-        def __init__(self, parser, ctx:ParserRuleContext): # actually a gramaticaParser.OperandoContext
-            super().__init__(parser)
-            self.copyFrom(ctx)
-
-        def INDIVIDUO(self):
-            return self.getToken(gramaticaParser.INDIVIDUO, 0)
-
-        def accept(self, visitor:ParseTreeVisitor):
-            if hasattr( visitor, "visitOperandoInd" ):
-                return visitor.visitOperandoInd(self)
-            else:
-                return visitor.visitChildren(self)
 
 
 
@@ -1847,14 +1736,12 @@ class gramaticaParser ( Parser ):
             self._errHandler.sync(self)
             la_ = self._interp.adaptivePredict(self._input,21,self._ctx)
             if la_ == 1:
-                localctx = gramaticaParser.OperandoFuncContext(self, localctx)
                 self.enterOuterAlt(localctx, 1)
                 self.state = 256
                 self.funcion()
                 pass
 
             elif la_ == 2:
-                localctx = gramaticaParser.OperandoVarAttrContext(self, localctx)
                 self.enterOuterAlt(localctx, 2)
                 self.state = 257
                 self.match(gramaticaParser.VARIABLE)
@@ -1865,7 +1752,6 @@ class gramaticaParser ( Parser ):
                 pass
 
             elif la_ == 3:
-                localctx = gramaticaParser.OperandoIndAttrContext(self, localctx)
                 self.enterOuterAlt(localctx, 3)
                 self.state = 260
                 self.match(gramaticaParser.INDIVIDUO)
@@ -1876,35 +1762,30 @@ class gramaticaParser ( Parser ):
                 pass
 
             elif la_ == 4:
-                localctx = gramaticaParser.OperandoIndContext(self, localctx)
                 self.enterOuterAlt(localctx, 4)
                 self.state = 263
                 self.match(gramaticaParser.INDIVIDUO)
                 pass
 
             elif la_ == 5:
-                localctx = gramaticaParser.OperandoVarContext(self, localctx)
                 self.enterOuterAlt(localctx, 5)
                 self.state = 264
                 self.match(gramaticaParser.VARIABLE)
                 pass
 
             elif la_ == 6:
-                localctx = gramaticaParser.OperandoNumContext(self, localctx)
                 self.enterOuterAlt(localctx, 6)
                 self.state = 265
                 self.match(gramaticaParser.NUMBER)
                 pass
 
             elif la_ == 7:
-                localctx = gramaticaParser.OperandoStrContext(self, localctx)
                 self.enterOuterAlt(localctx, 7)
                 self.state = 266
                 self.match(gramaticaParser.STRING)
                 pass
 
             elif la_ == 8:
-                localctx = gramaticaParser.OperandoBoolContext(self, localctx)
                 self.enterOuterAlt(localctx, 8)
                 self.state = 267
                 self.match(gramaticaParser.BOOLEAN)

@@ -124,6 +124,42 @@ class CondicionComparacion(Condicion):#REHACER
 
     def _resolver_valor(self, expr, contexto, base: BaseConocimiento):
         
+
+        if isinstance(expr,Variable):
+            if expr.nombre not in contexto:
+                    raise ValueError(f"La varaible {expr.nobmre} no esta en el contexto")
+            if expr.atributo is not None:
+                if expr.atributo not in contexto[expr.nombre].atributos:
+                    raise ValueError(f"La variable {expr.nobmre} no tiene el atributo {expr.atributo}")
+                return contexto[expr.nombre].atributos[expr.atributo]
+            else:
+                return contexto[expr.nombre]
+            
+        elif isinstance(expr,func):
+            variables = expr.args
+            parametros = []
+
+
+            for var in variables:
+                if isinstance(var,Variable):
+                    if var.nombre not in contexto:
+                        raise ValueError(f"No se ha econtrado la variable {var} en el contexto")
+                    if var.atributo is not None : 
+                        if var.atributo not  in contexto[var.nombre].atributos:
+                            raise ValueError(f"No se ha econtrado el atributo {var.atributo} en la variable {var}")
+                        parametros.append(contexto[var.nombre].atributos[var.atributo])
+                    else:
+                        parametros.append(contexto[var.nombre])
+                else:
+                    parametros.append(var)
+            parametros = tuple(parametros)
+
+            return self.funcion.run(*parametros)
+
+        else:
+            #Se considera que es un tipo basico
+            return expr
+
         if isinstance(expr,(int,bool)):
             return expr
 

@@ -119,43 +119,8 @@ class gramaticaVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
-    # Visit a parse tree produced by gramaticaParser#operandoFunc.
-    def visitOperandoFunc(self, ctx:gramaticaParser.OperandoFuncContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by gramaticaParser#operandoVarAttr.
-    def visitOperandoVarAttr(self, ctx:gramaticaParser.OperandoVarAttrContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by gramaticaParser#operandoIndAttr.
-    def visitOperandoIndAttr(self, ctx:gramaticaParser.OperandoIndAttrContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by gramaticaParser#operandoInd.
-    def visitOperandoInd(self, ctx:gramaticaParser.OperandoIndContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by gramaticaParser#operandoVar.
-    def visitOperandoVar(self, ctx:gramaticaParser.OperandoVarContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by gramaticaParser#operandoNum.
-    def visitOperandoNum(self, ctx:gramaticaParser.OperandoNumContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by gramaticaParser#operandoStr.
-    def visitOperandoStr(self, ctx:gramaticaParser.OperandoStrContext):
-        return self.visitChildren(ctx)
-
-
-    # Visit a parse tree produced by gramaticaParser#operandoBool.
-    def visitOperandoBool(self, ctx:gramaticaParser.OperandoBoolContext):
+    # Visit a parse tree produced by gramaticaParser#operando.
+    def visitOperando(self, ctx:gramaticaParser.OperandoContext):
         return self.visitChildren(ctx)
 
 

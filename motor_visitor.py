@@ -102,7 +102,7 @@ class MotorVisitor(gramaticaVisitor):
                 attr = ctx.idName().getText()
                 return (ind, attr)
             return ind
-        elif ctx.funcion():
+        elif getattr(ctx,'funcion',None):
             return self.visit(ctx.funcion())
         elif ctx.NUMBER():
             return int(ctx.NUMBER().getText())
@@ -468,14 +468,51 @@ class MotorVisitor(gramaticaVisitor):
             raise ValueError(
                 f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
             )
-        izq = self._parse_operando(ctx.operando(0))
-        der = self._parse_operando(ctx.operando(1))
+        izq = self.visitOperando(ctx.operando(0))
+        der = self.visitOperando(ctx.operando(1))
         op = TipoComparacion(ctx.OpComp().getText())
-        vars_ = self._collect_vars(izq, der)
-        condicion = CondicionComparacion(izq, op, der, vars_)
+        variables = []
+        if isinstance(izq,Variable):
+            variables.append(izq)
+        elif isinstance(izq,func):
+            variables.append(izq.args)
+        if isinstance(der,Variable):
+            variables.append(der)
+        elif isinstance(der,func):
+            variables.append(der.args)
+
+        condicion = CondicionComparacion(izq, op, der, variables)
         self.visitChildren(ctx)
         return condicion
     
+
+    def visitOperando(self, ctx):
+        # Si es una función
+        if ctx.funcion():
+            return self.visitFuncion(ctx.funcion())
+        # VARIABLE '.' idName
+        elif ctx.VARIABLE() and ctx.idName():
+            return Variable(ctx.VARIABLE().getText(), ctx.idName().getText())
+        # INDIVIDUO '.' idName
+        elif ctx.INDIVIDUO() and ctx.idName():
+            return (ctx.INDIVIDUO().getText(), ctx.idName().getText())
+        # INDIVIDUO solo
+        elif ctx.INDIVIDUO():
+            return ctx.INDIVIDUO().getText()
+        # VARIABLE sola
+        elif ctx.VARIABLE():
+            return ctx.VARIABLE().getText()
+        # NUMBER
+        elif ctx.NUMBER():
+            return int(ctx.NUMBER().getText())
+        # STRING
+        elif ctx.STRING():
+            return _texto_string(ctx.STRING().getText())
+        # BOOLEAN
+        elif ctx.BOOLEAN():
+            return ctx.BOOLEAN().getText() == 'True'
+        # Fallback
+        return ctx.getText()
 
     def visitAsignacionVariable(self, ctx):
 
