@@ -2,9 +2,28 @@ from abc import ABC, abstractmethod
 from typing import Dict, List, Tuple, Union
 
 import logging
-from base import BaseConocimiento, TipoOperacion
+from base import BaseConocimiento, TipoOperacion,Variable
+from func import func
 
 logger = logging.getLogger("LOG")
+
+
+def _sustituir_parametros(contexto,variables):
+    parametros = []
+    for var in variables:
+        if isinstance(var,Variable):
+            if var.nombre not in contexto:
+                raise ValueError(f"No se ha econtrado la variable {var} en el contexto")
+            if var.atributo is not None : 
+                if var.atributo not  in contexto[var.nombre].atributos:
+                    raise ValueError(f"No se ha econtrado el atributo {var.atributo} en la variable {var}")
+                parametros.append(contexto[var.nombre].atributos[var.atributo])
+            else:
+                parametros.append(contexto[var.nombre])
+        else:
+            parametros.append(var)
+    parametros = tuple(parametros)
+    return parametros
 
 
 class Consecuencia(ABC):
@@ -89,15 +108,37 @@ class ConsecuenciaEliminacion(Consecuencia):
         logger.info(f"[Accion] Eliminar {tupla} de {self.proposicion}")
         base.proposiciones[self.proposicion].eliminar(tupla)
 
+class ConsecuenciaFuncion(Consecuencia):
+    def __init__(self, variables,funcion):
+        super().__init__(variables)
+        self.funcion = funcion
+
+    def ejecutar(self,contexto,base):
+        parametros = []
+        for var in self.variables:
+            if isinstance(var,Variable):
+                if var.nombre not in contexto:
+                    raise ValueError(f"No se ha econtrado la variable {var} en el contexto")
+                if var.atributo is not None : 
+                    if var.atributo not  in contexto[var.nombre].atributos:
+                        raise ValueError(f"No se ha econtrado el atributo {var.atributo} en la variable {var}")
+                    parametros.append(contexto[var.nombre].atributos[var.atributo])
+                else:
+                    parametros.append(contexto[var.nombre])
+            else:
+                parametros.append(var)
+        parametros = tuple(parametros)
+        self.funcion.run(*parametros)
+
 
 class ConsecuenciaModificacion(Consecuencia):
     def __init__(
         self,
-        objetivo: str,
+        objetivo: Variable,
         #atributo: str,
         operacion: TipoOperacion,
-        valor: Union[str, int, Tuple[str, str]],
-        atributo_valor: str = None,
+        valor,
+        #atributo_valor: str = None,
         variables: List[str] = None,
     ):
         super().__init__(variables or [])
@@ -105,7 +146,7 @@ class ConsecuenciaModificacion(Consecuencia):
         #self.atributo = atributo
         self.operacion = operacion
         self.valor = valor
-        self.atributo_valor = atributo_valor
+        #self.atributo_valor = atributo_valor
 
     def ejecutar(self, contexto: Dict[str, str], base: BaseConocimiento):
         
@@ -114,6 +155,40 @@ class ConsecuenciaModificacion(Consecuencia):
         #De momento solo se coge el primer valor, por lo que no existen la multivariable en las consecuencias
 
         #variable = contexto.get(self.objetivo)[0]
+
+        valor = None
+        if isinstance(self.valor,Variable):
+            if self.valor.nombre not in contexto:
+                raise ValueError(f"La variable {self.valor.nombre} no se encuentra en el contexto")
+            if self.valor.atributo is not None:
+                if self.valor.atributo not in contexto[self.valor.nombre].atributos:
+                    raise ValueError(f"No se encuentra el atributo {self.valor.atributo} en ka variable {self.valor.nombre}")
+                valor = contexto[self.valor.nombre].atributos[self.valor.atributo]
+            else:
+                valor = contexto[self.valor.nombre]
+        elif isinstance(self.valor,func):
+            parametros =_sustituir_parametros(contexto,self.valor.args)
+            valor = self.valor.run(*parametros)
+        elif isinstance(self.valor,int):
+            valor = self.valor
+        else:
+            raise ValueError(f"Tipo de valor no reconocido")
+        
+
+        if self.objetivo.nombre not in contexto:
+            raise ValueError(f"La variable objetivo {self.objetivo} no se encuentra en el contexto")
+        if self.objetivo.atributo not in contexto[self.objetivo.nombre].atributos:
+            raise ValueError(f"No se encuentra el atributo {self.objetivo.atributo} en la variable objetivo {self.objetivo}")
+
+
+        if self.operacion == TipoOperacion.ASIGNACION:
+           contexto[self.objetivo.nombre].atributos[self.objetivo.atributo] = valor
+        elif self.operacion == TipoOperacion.INCREMENTO:
+            contexto[self.objetivo.nombre].atributos[self.objetivo.atributo] += valor
+        elif self.operacion == TipoOperacion.DECREMENTO:
+            contexto[self.objetivo.nombre].atributos[self.objetivo.atributo] -= valor
+        return
+        
 
         variable, atributo = self.objetivo.split('.',1)
         if '.' in atributo:

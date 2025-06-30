@@ -1,16 +1,22 @@
 from antlr4 import ErrorNode, ParseTreeVisitor, TerminalNode
 from antlr4.tree.Tree import ErrorNodeImpl
 
+import importlib
+import inspect
+from types import MethodType
+from func import func
+
 import logging
 from gramaticaVisitor import gramaticaVisitor
 from gramaticaParser import gramaticaParser
 from motorEjecucion import MotorEjecucion, logger
-from base import TipoComparacion, TipoOperacion
-from condiciones import CondicionSimple, CondicionComparacion, CondicionLogica, CondicionNegacion, CondicionAsignacion
+from base import TipoComparacion, TipoOperacion,Variable
+from condiciones import CondicionSimple, CondicionComparacion, CondicionLogica, CondicionNegacion, CondicionAsignacion, CondicionFuncion
 from consecuencias import (
     ConsecuenciaAsignacion,
     ConsecuenciaEliminacion,
     ConsecuenciaModificacion,
+    ConsecuenciaFuncion
 )
 from reglas import Regla
 
@@ -25,6 +31,22 @@ class MotorVisitor(gramaticaVisitor):
     def __init__(self, motor: MotorEjecucion):
         super().__init__()
         self.motor = motor
+        #self.store = func_store.FuncStore()
+        self.imports = {}
+        #modBiblioteca = importlib.import_module("biblioteca")
+        #self._import("Biblioteca","biblioteca")
+
+        #prestamo = func(self.imports["Biblioteca"].funcs["concederPrestamo"],("nacho","programacion Python"))
+        #prestamo.run()
+
+        #self.imports["Biblioteca"].funcs["concederPrestamo"]("nacho","programacion Python")
+
+    def _import(self,clase,ruta):
+        mod =  importlib.import_module(ruta)
+        cls = getattr(mod,clase)
+        self.imports[clase] = cls
+    
+
 
     def visitPrograma(self, ctx):
         for child in ctx.getChildren():
@@ -35,12 +57,26 @@ class MotorVisitor(gramaticaVisitor):
                     start = child.start.line
                     end = getattr(child.stop, "line", start)
                     logger.error(f"Error de sintaxis entre lineas {start}-{end}: {e}")
+            elif isinstance(child, gramaticaParser.ImportsContext):
+                try:
+                    self.visitImports(child)
+                except ValueError as e:
+                    start = child.start.line
+                    end = getattr(child.stop, "line", start)
+                    logger.error(f"Error de sintaxis entre lineas {start}-{end}: {e}")
 
             elif isinstance(child, TerminalNode):
                 # Manejar nodos terminales si es necesario
                 pass
             else:
                 logger.warning(f"Elemento desconocido: {child.getText()}")
+        
+    def visitImports(self, ctx):
+        if any(isinstance(c, ErrorNodeImpl) for c in (getattr(ctx, 'children', None) or [])):
+            raise ValueError(
+                f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
+            )
+        self._import(ctx.idName(1).getText(),ctx.idName(0).getText())
         
 
     # Helpers --------------------------------------------------------------
@@ -60,17 +96,19 @@ class MotorVisitor(gramaticaVisitor):
                 attr = ctx.idName().getText()
                 return (var, attr)
             return var
-        if getattr(ctx, 'INDIVIDUO', None):
+        elif getattr(ctx, 'INDIVIDUO', None):
             ind = ctx.INDIVIDUO().getText()
             if ctx.getChildCount() == 3:
                 attr = ctx.idName().getText()
                 return (ind, attr)
             return ind
-        if ctx.NUMBER():
+        elif ctx.funcion():
+            return self.visit(ctx.funcion())
+        elif ctx.NUMBER():
             return int(ctx.NUMBER().getText())
-        if ctx.STRING():
+        elif ctx.STRING():
             return _texto_string(ctx.STRING().getText())
-        if ctx.BOOLEAN():
+        elif ctx.BOOLEAN():
             return ctx.BOOLEAN().getText() == 'True'
         return ctx.getText()
 
@@ -314,16 +352,96 @@ class MotorVisitor(gramaticaVisitor):
 #COMPROBAR SI ES UN PREDICADO VALIDO O HACERLO AL REGISTRAR LA REGLA???
         condicion = None
         if ctx.predicado():
-            prop, vars_ = self._parse_predicado(ctx.predicado())
-            condicion = CondicionSimple(prop, vars_)
+            prop,args = self.visitPredicado(ctx.predicado())
+            condicion = CondicionSimple(prop,args)
+            
         elif ctx.comparacion():
             condicion = self.visitComparacion(ctx.comparacion())
         elif ctx.operacionLogica():
             condicion = self.visitOperacionLogica(ctx.operacionLogica())
         elif ctx.asignacionVariable():
             condicion = self.visitAsignacionVariable(ctx.asignacionVariable())
+        elif ctx.condicionFuncion():
+            condicion = self.visitCondicionFuncion(ctx.condicionFuncion())
 
         return condicion
+    
+    def visitCondicionFuncion(self, ctx):
+
+        funcion = self.visitFuncion(ctx.funcion())
+        condicion = CondicionFuncion(funcion.args,funcion)
+        return condicion
+        return super().visitCondicionFuncion(ctx)
+
+    def visitFuncion(self, ctx):
+        nombre_modulo = ctx.idName(0).getText()
+        if nombre_modulo not in self.imports:
+            raise ValueError(f"No se ha econtrado el modulo {nombre_modulo}")
+        mod = self.imports[nombre_modulo]
+        nombre_funcion = ctx.idName(1).getText()
+        if nombre_funcion not in mod.funcs:
+            raise ValueError(f"No se ha econtrado la funcion {nombre_funcion} en el modulo {nombre_modulo}")
+        funcion = mod.funcs[nombre_funcion]
+        if ctx.listaArgsFuncion():
+
+            args = tuple(self.visitListaArgsFuncion(ctx.listaArgsFuncion()))
+        else:
+            args = ()
+        funcion = func(funcion,args)
+        return funcion
+    def visitListaArgsFuncion(self, ctx):
+        args = []
+        for child in ctx.getChildren():
+            if not isinstance(child, TerminalNode):
+
+                param = self.visitParamFuncion(child)
+                args.append(param)
+        return args
+    
+    def visitParamFuncion(self, ctx):
+
+        if ctx.VARIABLE():
+            if ctx.idName():
+                return Variable(ctx.VARIABLE().getText(),ctx.idName().getText())
+            else:
+                return Variable(ctx.VARIABLE().getText())
+        elif ctx.STRING():
+            return ctx.STRING().getText()[1:-1]
+        elif ctx.NUMBER():
+            valor = ctx.NUMBER().getText()
+            valor = int(valor)
+            return valor
+        
+        
+
+
+        return super().visitParamFuncion(ctx)
+
+    def visitPredicado(self, ctx):
+        argumentos = self.visitListaArgsPredicado(ctx.listaArgsPredicado())
+        prop = ctx.idName().getText()
+        
+
+        return prop,argumentos
+    
+
+    def visitListaArgsPredicado(self, ctx):
+        argumentos = []
+        for arg in ctx.paramPredicado():
+            argumentos.append(self.visitParamPredicado(arg))
+        return argumentos
+    
+    def visitParamPredicado(self, ctx):
+
+        if ctx.VARIABLE():
+            if ctx.idName():
+                return Variable(ctx.VARIABLE().getText(),ctx.idName().getText())
+            else:
+                return Variable(ctx.VARIABLE().getText())
+        elif ctx.getText()=="_":
+            return '_'
+        return super().visitParamPredicado(ctx)
+
     def visitOperacionLogica(self, ctx: gramaticaParser.OperacionLogicaContext):
         if any(isinstance(c, ErrorNodeImpl) for c in (getattr(ctx, 'children', None) or [])):
             raise ValueError(
@@ -362,10 +480,8 @@ class MotorVisitor(gramaticaVisitor):
     def visitAsignacionVariable(self, ctx):
 
         variable_asignacion = ctx.VARIABLE().getText()
-        predicado,variables = self._parse_predicado(ctx.predicado())
-        condicion = None
-        return CondicionAsignacion(variables,variable_asignacion,predicado)
-        return super().visitAsignacionVariable(ctx)
+        nombre,argumentos = self.visitPredicado(ctx.predicado())
+        return CondicionAsignacion(argumentos,variable_asignacion,nombre)
 
 
     def visitListaConsecuencias(self, ctx: gramaticaParser.ListaConsecuenciasContext):
@@ -379,11 +495,20 @@ class MotorVisitor(gramaticaVisitor):
         consecuencia = None
         if ctx.asignacion():
             asign = ctx.asignacion()
-            objetivo  = self._parse_operando(asign.operandoIzq())
-            valor = self._parse_operando(asign.operandoDrc())
-            op = TipoOperacion(asign.OpAsign().getText())
-            vars_ = self._collect_vars(objetivo, valor)
-            consecuencia = ConsecuenciaModificacion(objetivo, op, valor, variables=vars_)
+            objetivo  = self.visitOperandoIzq(asign.operandoIzq())
+            valor = self.visitOperandoDrc(asign.operandoDrc())
+            if(asign.OpAsign()):
+
+                op = TipoOperacion(asign.OpAsign().getText())
+            else:
+                op = TipoOperacion("=")
+            #vars_ = self._collect_vars(objetivo, valor)
+            variables = [objetivo]
+            if isinstance(valor,Variable):
+                variables.append(valor)
+            elif isinstance(valor,func):
+                variables.append(valor.args)
+            consecuencia = ConsecuenciaModificacion(objetivo=objetivo,operacion=op,valor=valor,variables=variables)
         elif ctx.borrado():
             prop, args = self._parse_predicado(ctx.borrado().predicado())
             #vars_ = [a for a in args if a[:1].isupper()]
@@ -392,8 +517,27 @@ class MotorVisitor(gramaticaVisitor):
             prop, args = self._parse_predicado(ctx.predicado())
             #vars_ = [a for a in args if a[:1].isupper()]
             consecuencia = ConsecuenciaAsignacion(prop, args)
+        elif ctx.funcion():
+            funcion = self.visitFuncion(ctx.funcion())
+            consecuencia = ConsecuenciaFuncion(funcion.args,funcion)
+            
         return consecuencia
-    
+    def visitOperandoIzq(self, ctx):
+
+        variable = Variable(ctx.VARIABLE().getText(),ctx.idName().getText())
+        return variable
+        return super().visitOperandoIzq(ctx)
+    def visitOperandoDrc(self, ctx):
+        if ctx.operandoIzq():
+            return self.visitOperandoIzq(ctx.operandoIzq())
+        elif ctx.funcion():
+            return self.visitFuncion(ctx.funcion())
+        elif ctx.NUMBER():
+            return int(ctx.NUMBER().getText())
+
+        return super().visitOperandoDrc(ctx)
+
+
     def visitErrorNode(self, node: ErrorNode):
         #logger.error(f"Error de sintaxis en '{node.getText()}' en {node.symbol.line}:{node.symbol.column}")    
         raise ValueError(

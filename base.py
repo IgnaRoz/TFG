@@ -28,6 +28,10 @@ OPERADORES = {
     TipoComparacion.MENOR_IGUAL: operator.le,
 }
 
+class Variable():
+    def __init__(self,nombre,atributo=None):
+        self.nombre = nombre
+        self.atributo = atributo
 
 class Individuos:
     def __init__(self):

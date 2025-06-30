@@ -8,15 +8,15 @@ Prop Disponible(Libro);
 
 Accion PrestarLibro(U,L):
     Condiciones:
-        P = Prestamos(U,_);
-        Profesor(P.Usuario);
-        N = Usuario(nacho);
-        Output("Condicion{2}:Prestamo Usuario {0} con libro {1}",P.Usuario,P.Libro,N.Usuario);
-        P.fecha_devolucion == 1;
-        Biblioteca.concederPrestamo(U,L);
+        P = Prestamos(Biblioteca.getUsuario(),L);
+        Usuario(P.Usuario);
     Consecuencias:
-        Output("Consecuencia:Prestamo Usuario {0} con libro {1}",P.Usuario,P.Libro);
-
+        Biblioteca.concederPrestamo(P.Usuario,P.Libro); 
+        Biblioteca.print("fecha_devolucion");
+        Biblioteca.print(P.fecha_devolucion) ;     
+        P.fecha_devolucion += 7;
+        Biblioteca.print("fecha_devolucion");
+        Biblioteca.print(P.fecha_devolucion) ; 
 
 
 //Inicializacion

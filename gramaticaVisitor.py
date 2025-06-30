@@ -14,6 +14,11 @@ class gramaticaVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramaticaParser#imports.
+    def visitImports(self, ctx:gramaticaParser.ImportsContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramaticaParser#elemento.
     def visitElemento(self, ctx:gramaticaParser.ElementoContext):
         return self.visitChildren(ctx)
@@ -84,6 +89,11 @@ class gramaticaVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramaticaParser#condicionFuncion.
+    def visitCondicionFuncion(self, ctx:gramaticaParser.CondicionFuncionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramaticaParser#asignacionVariable.
     def visitAsignacionVariable(self, ctx:gramaticaParser.AsignacionVariableContext):
         return self.visitChildren(ctx)
@@ -106,6 +116,11 @@ class gramaticaVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by gramaticaParser#comparacion.
     def visitComparacion(self, ctx:gramaticaParser.ComparacionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#operandoFunc.
+    def visitOperandoFunc(self, ctx:gramaticaParser.OperandoFuncContext):
         return self.visitChildren(ctx)
 
 
@@ -141,6 +156,21 @@ class gramaticaVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by gramaticaParser#operandoBool.
     def visitOperandoBool(self, ctx:gramaticaParser.OperandoBoolContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#funcion.
+    def visitFuncion(self, ctx:gramaticaParser.FuncionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#listaArgsFuncion.
+    def visitListaArgsFuncion(self, ctx:gramaticaParser.ListaArgsFuncionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#paramFuncion.
+    def visitParamFuncion(self, ctx:gramaticaParser.ParamFuncionContext):
         return self.visitChildren(ctx)
 
 

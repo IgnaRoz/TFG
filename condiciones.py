@@ -2,7 +2,8 @@ from abc import ABC, abstractmethod
 from typing import Dict, List
 
 import logging
-from base import BaseConocimiento, OPERADORES, TipoComparacion, ElementoProposicion
+from base import BaseConocimiento, OPERADORES, TipoComparacion, ElementoProposicion, Variable
+from func import func
 
 logger = logging.getLogger("LOG")
 
@@ -17,7 +18,7 @@ class Condicion(ABC):
 
 
 class CondicionSimple(Condicion):
-    def __init__(self, nombre_proposicion: str, variables: List[str]):
+    def __init__(self, nombre_proposicion: str, variables):
         super().__init__(variables)
         self.nombre_proposicion = nombre_proposicion
 
@@ -44,30 +45,74 @@ class CondicionSimple(Condicion):
         #        else:
         #            parametros.append(variable)
 
+        #for variable in self.variables:
+        #    aux = False
+        #    for i_contexto in contexto:
+        #        if i_contexto == variable:
+        #            parametros.append(contexto[i_contexto])
+        #            aux = True
+        #            break
+        #        elif variable.startswith(i_contexto+'.'):
+        #            var, atributo = variable.split('.',1)
+        #            if var == i_contexto and atributo in contexto[i_contexto].atributos:
+        #                parametros.append(contexto[i_contexto].atributos[atributo])
+        #                aux = True
+        #                break
+        #    if not aux:                    
+        #        parametros.append(variable)
+#
+
+
         for variable in self.variables:
-            aux = False
-            for i_contexto in contexto:
-                if i_contexto == variable:
-                    parametros.append(contexto[i_contexto])
-                    aux = True
-                    break
-                elif variable.startswith(i_contexto+'.'):
-                    var, atributo = variable.split('.',1)
-                    if var == i_contexto and atributo in contexto[i_contexto].atributos:
-                        parametros.append(contexto[i_contexto].atributos[atributo])
-                        aux = True
-                        break
-            if not aux:                    
+
+
+            if isinstance(variable,Variable):
+                if variable.nombre not in contexto:
+                    raise ValueError(f"La varaible {variable.nobmre} no esta en el contexto")
+                if variable.atributo is not None:
+                    if variable.atributo not in contexto[variable.nombre].atributos:
+                        raise ValueError(f"La variable {variable.nobmre} no tiene el atributo {variable.atributo}")
+                    parametros.append(contexto[variable.nombre].atributos[variable.atributo])
+                else:
+                    parametros.append(contexto[variable.nombre])
+            else:
+                #Se considera que es un tipo basico
                 parametros.append(variable)
+                
 
 
-                    
 
 
         tupla = tuple(parametros)
         resultado = base.proposiciones[self.nombre_proposicion].existe(tupla)
         logger.debug(f"[{self.nombre_proposicion}] Validación simple {tupla} -> {resultado}")
         return resultado
+
+class CondicionFuncion(Condicion):
+    def __init__(self, variables,funcion):
+        super().__init__(variables)
+        self.funcion = funcion
+
+    def validar(self,contexto,base):
+
+
+
+        parametros = []
+        for var in self.variables:
+            if isinstance(var,Variable):
+                if var.nombre not in contexto:
+                    raise ValueError(f"No se ha econtrado la variable {var} en el contexto")
+                if var.atributo is not None : 
+                    if var.atributo not  in contexto[var.nombre].atributos:
+                        raise ValueError(f"No se ha econtrado el atributo {var.atributo} en la variable {var}")
+                    parametros.append(contexto[var.nombre].atributos[var.atributo])
+                else:
+                    parametros.append(contexto[var.nombre])
+            else:
+                parametros.append(var)
+        parametros = tuple(parametros)
+
+        return self.funcion.run(*parametros)
 
 
 class CondicionComparacion(Condicion):#REHACER
@@ -153,11 +198,42 @@ class CondicionAsignacion(Condicion):
         #self.asignacion = [] #hay que reiniciar la asignación cada vez que se valida la condición
         #Si es una variable, se sustituye por su valor en el contexto
         #Si no, se deja como está, puede ser un valor literal o individuo
-        for v in self.variables:
-            if v not in contexto:
-                parametros.append(v)
-            else: 
-                parametros.append(contexto[v])
+        
+        #for v in self.variables:
+        #    if v not in contexto:
+        #        parametros.append(v)
+        #    else: 
+        #        parametros.append(contexto[v])
+
+        for var in self.variables:
+            if isinstance(var,Variable):
+                if var.nombre not in contexto:
+                    raise ValueError(f"No se ha econtrado la variable {var} en el contexto")
+                if var.atributo is not None : 
+                    if var.atributo not  in contexto[var.nombre].atributo:
+                        raise ValueError(f"No se ha econtrado el atributo {var.atributo} en la variable {var}")
+                    parametros.append(contexto[var.nombre].atributos[var.atributo])
+                else:
+                    parametros.append(contexto[var.nombre])
+            elif isinstance(var,func) :
+                #Se podria refactorizar
+                parametros_funcion = []
+                args = var.args or []
+                for arg in args:
+                    if isinstance(arg,Variable):
+                        if arg.nombre not in contexto: 
+                           raise ValueError(f"No se ha econtrado la variable {arg} en el contexto")
+                        if arg.atributo is not None : 
+                            if arg.atributo not  in contexto[arg.nombre].atributo:
+                                raise ValueError(f"No se ha econtrado el atributo {arg.atributo} en la variable {arg}")
+                            parametros_funcion.append(contexto[arg.nombre].atributos[arg.atributo])
+                        else:
+                            parametros_funcion.append(contexto[arg.nombre])
+                    else:
+                        parametros_funcion.append(arg)
+                parametros.append(var.run(*args))
+            else:
+                parametros.append(var)
         #Se debe de recorrer cada elemento de la proposicion, si los valores coinciden, se asigna el valor de la variable de asignación
 
         proposicion = base.proposiciones[self.nombre_proposicion]

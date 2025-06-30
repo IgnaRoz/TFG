@@ -1,7 +1,7 @@
 from typing import List
 from itertools import product
 import logging
-from base import BaseConocimiento
+from base import BaseConocimiento,Variable
 logger = logging.getLogger("LOG")
 from condiciones import Condicion, CondicionAsignacion
 from consecuencias import Consecuencia
@@ -29,11 +29,8 @@ class Regla:
             #obtenemos el contexto local, que es un subconjunto del contexto original, pero con las variables de la condición
             variables_cond = set()
             for var in cond.variables:
-                variables_cond.add(var)
-                # Si la variable es del tipo P.algo, también incluir P
-                if '.' in var:
-                    variables_cond.add(var.split('.')[0])
-            #Empieza como set para luego ser una lista para no repetir valores? No estoy seguro(y lo he hecho yo)
+                if isinstance(var,Variable):
+                    variables_cond.add(var.nombre)
             variables_cond = list(variables_cond)
 
 
@@ -118,9 +115,9 @@ class Regla:
                 #Empiezo obteniendo las variables que se usaran en la consecuencia
                 variables_cons = set()
                 for var in c.variables:
-                    variables_cons.add(var)
-                    if '.' in var:
-                        variables_cons.add(var.split('.')[0])
+                    if isinstance(var,Variable):
+                        variables_cons.add(var.nombre)
+
                 variables_cons = list(variables_cons)
 
 
@@ -146,9 +143,9 @@ class Regla:
                     
                     for valor in valores_var_mul:
                         #El contexto local no es un diccionario de listas, sino un diccionario de valores, por lo que se debe crear un nuevo contexto local con el valor de la variable multiple
-                        contexto_local = {k: v[0] for k, v in contexto_local.items() if k != var_mul}#El contexto local es el contexto original sin la variable multiple
-                        contexto_local[var_mul] = valor
-                        contextos_locales.append(contexto_local)
+                        contexto_local_aux = {k: v[0] for k, v in contexto_local.items() if k != var_mul}#El contexto local es el contexto original sin la variable multiple
+                        contexto_local_aux[var_mul] = valor
+                        contextos_locales.append(contexto_local_aux)
                 else:
                     #Si no hay variable multiple, el contexto local es igual al contexto original pero sin listas
                     contexto_local = {k: v[0] for k, v in contexto_local.items()}#El contexto local es el contexto original sin listas

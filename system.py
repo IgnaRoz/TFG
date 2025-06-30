@@ -1,6 +1,6 @@
 from typing import Tuple
 from base import Proposicion
-
+from registry import Registry,export
 class Output(Proposicion):
     def __init__(self):
         super().__init__("Output", [])

@@ -84,3 +84,4 @@ P.valor <= System.Max(L.valor2);
 P.algo == M.algo For P//Cual variable se tiene que eliminar del contexto? Una opcion seria expecificarlo con For P cuando exista en una comparacion varias variables
 
 //System es como una variable pero cuando hay () en el atributo, entonces es una funcion. *P indica que se quiere tratar todo los elementos de P de una sola vez(agregacion)
+hola(nacho(x,y,f()))

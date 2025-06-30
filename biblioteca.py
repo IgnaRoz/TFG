@@ -1,27 +1,16 @@
-@User
-def getUsuario(id):
-    return "usuario_" + str(id)
-
-def newUsuario(id, nombre):
-    return {"id": id, "nombre": nombre}
-
-def setusuario(id):
-    pass
+from registry import Registry, export
 
 
-class User(object):
-    def __init__(self, id, nombre):
-        self.id = id
-        self.nombre = nombre
+class Biblioteca(Registry):
 
-    def __str__(self):
-        return f"User(id={self.id}, nombre={self.nombre})"
-
-    def get_id(self):
-        return self.id
-
-    def get_nombre(self):
-        return self.nombre
-
-    def set_nombre(self, nombre):
-        self.nombre = nombre
+    @export
+    def concederPrestamo(usuario,libro):
+        print(f"[Biblioteca] Prestadmo del libro {libro} concedido al usuario {usuario}")
+        return True
+    @export
+    def getUsuario():
+        return "nacho"
+    @export
+    def print(mensaje):
+        print(mensaje)
+        return mensaje

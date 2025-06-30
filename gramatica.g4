@@ -1,9 +1,11 @@
 grammar gramatica;
 
 programa
-    : elemento* EOF
+    : imports* elemento* EOF
     ;
-
+imports
+    : 'from' idName 'import' idName ';'
+    ;
 elemento
     : declaracion
     | accion
@@ -66,22 +68,29 @@ condicion
     | comparacion
     | operacionLogica
     | asignacionVariable
+    | condicionFuncion
+    ;
+condicionFuncion
+    : funcion
     ;
 asignacionVariable
-    : VARIABLE '=' predicado
+    : VARIABLE OpIgual predicado
     ;
 predicado
-    : idName '(' listaArgsPredicado? ')'
+    : idName '(' listaArgsPredicado ')'
     ;
 listaArgsPredicado
     : paramPredicado (',' paramPredicado)*
     ;
 paramPredicado
     : INDIVIDUO
+    | funcion
+    | VARIABLE '.' idName
     | VARIABLE
     | STRING
     | NUMBER
     | BOOLEAN
+    | '_'
     ;
 
 comparacion
@@ -98,7 +107,8 @@ OpComp
 
 
 operando
-    : VARIABLE '.' idName        # operandoVarAttr //No llega a entrar porque variable.atributo tambien es una variable. Pero no importa
+    : funcion                    # operandoFunc
+    | VARIABLE '.' idName        # operandoVarAttr //No llega a entrar porque variable.atributo tambien es una variable. Pero no importa
     | INDIVIDUO '.' idName       # operandoIndAttr
     | INDIVIDUO                  # operandoInd
     | VARIABLE                   # operandoVar
@@ -106,7 +116,21 @@ operando
     | STRING                     # operandoStr
     | BOOLEAN                    # operandoBool
     ;
+funcion
+    : idName  '.' idName '(' listaArgsFuncion? ')' //hay que añadir una regla semantica para que no se pueda incluir una funcion dentro de una funcion
+    ;
 
+listaArgsFuncion
+    : paramFuncion (',' paramFuncion)*
+    ;
+paramFuncion
+    : INDIVIDUO
+    | VARIABLE '.' idName
+    | VARIABLE
+    | STRING
+    | NUMBER
+    | BOOLEAN
+    ;
 operacionLogica
     : OR '(' listaCondiciones ')'        #opOr
     | AND '(' listaCondiciones ')'       #opAnd
@@ -122,27 +146,31 @@ NOT : 'NOT' ;
 listaConsecuencias
     : ( consecuencia ';' comentarioSimple? )*
     ;
-consecuencia
+consecuencia     
     : asignacion
+    | funcion
     | borrado
     | predicado
     ;
 
 asignacion
-    : operandoIzq OpAsign operandoDrc
+    : operandoIzq (OpAsign|OpIgual) operandoDrc
     ;
 operandoIzq
-    : VARIABLE
-    | INDIVIDUO
+    : VARIABLE '.' idName
     ;
 operandoDrc
-    : operandoIzq
+    : funcion
+    | operandoIzq
     | NUMBER
     ;
+
+OpIgual
+    : '='
+    ; 
 OpAsign
     : '+='
     | '-='
-    | '='
     ;
 
 borrado
@@ -193,6 +221,7 @@ comentarioMultilineo
 fragment LQUOTE : '\u201C' ;  // “
 fragment RQUOTE : '\u201D' ;  // ”  
 
+
 COMMENT_SIMPLE
     : '//' ~[\r\n]* 
     ;
@@ -229,8 +258,7 @@ INDIVIDUO
 
 // variable = identificador que empieza por mayúscula
 VARIABLE
-    : LETTER_U (LETTER | DIGIT | '_' | '.')*
-    | '_'
+    : LETTER_U (LETTER | DIGIT | '_' )*
     ;
     
 // para todo nombre genérico (categorias, props, acciones…)
