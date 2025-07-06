@@ -10,6 +10,13 @@ class Biblioteca(Registry):
     @export
     def getUsuario():
         return "nacho"
+    
+    @export
+    def Count(variable):
+        if isinstance(variable,list):
+            print(f"Variable {variable} count:{len(variable)} ")
+            return len(variable)
+        return 1
     @export
     def print(mensaje):
         print(mensaje)

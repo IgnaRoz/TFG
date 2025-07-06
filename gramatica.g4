@@ -74,7 +74,7 @@ condicionFuncion
     : funcion
     ;
 asignacionVariable
-    : VARIABLE OpIgual predicado
+    : VARIABLE OpIgual (predicado|funcion)
     ;
 predicado
     : idName '(' listaArgsPredicado ')'
@@ -126,7 +126,7 @@ listaArgsFuncion
 paramFuncion
     : INDIVIDUO
     | VARIABLE '.' idName
-    | VARIABLE
+    | '*'? VARIABLE
     | STRING
     | NUMBER
     | BOOLEAN

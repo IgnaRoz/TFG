@@ -416,6 +416,9 @@ class MotorVisitor(gramaticaVisitor):
             if ctx.idName():
                 return Variable(ctx.VARIABLE().getText(),ctx.idName().getText())
             else:
+                if ctx.getChild(0).getText()=='*':
+                    return Variable(ctx.VARIABLE().getText(),agregacion=True)
+
                 return Variable(ctx.VARIABLE().getText())
         elif ctx.STRING():
             return ctx.STRING().getText()[1:-1]
@@ -534,9 +537,15 @@ class MotorVisitor(gramaticaVisitor):
     def visitAsignacionVariable(self, ctx):
 
         variable_asignacion = ctx.VARIABLE().getText()
-        nombre,argumentos = self.visitPredicado(ctx.predicado())
-        return CondicionAsignacion(argumentos,variable_asignacion,nombre)
 
+        if ctx.predicado():
+            nombre,argumentos = self.visitPredicado(ctx.predicado())
+            return CondicionAsignacion(argumentos,variable_asignacion,nombre)
+        elif ctx.funcion():
+            funcion = self.visitFuncion(ctx.funcion())
+            return CondicionAsignacion(funcion.args,variable_asignacion,funcion)
+            #devolver funcion
+        return None
 
     def visitListaConsecuencias(self, ctx: gramaticaParser.ListaConsecuenciasContext):
         consecuencias = []

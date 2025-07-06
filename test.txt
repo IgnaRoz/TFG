@@ -9,12 +9,11 @@ Prop Disponible(Libro);
 
 Accion Test(U,L):
     Condiciones:
-        Usuario(Biblioteca.getUsuario());
-        P = Prestamos(Biblioteca.getUsuario(),L);
-        P.Usuario == Biblioteca.getUsuario();
-        Usuario(P.Usuario);
-        P.Usuario == U;
-        P.fecha_devolucion == P.fecha_devolucion;
+
+        P = Prestamos(U,_);
+        C = Biblioteca.Count(*P);
+        Biblioteca.print("count");
+        Biblioteca.print(C);
     Consecuencias:
 
         Usuario("usuario"){libros_Prestados=0};

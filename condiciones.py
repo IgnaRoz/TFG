@@ -256,13 +256,19 @@ class CondicionNegacion(Condicion):
         return resultado
     
 class CondicionAsignacion(Condicion):
-    def __init__(self, variables: List, valiable_asignacion:str, nombre_proposicion: str):
+    def __init__(self, variables: List, valiable_asignacion, valor):
         super().__init__(variables)
+        #valor puede ser el nombre de una proposicion o un objeto func
         self.variable_asignacion = valiable_asignacion#Nombre de la variable donde se guardará la asignación
         self.asignacion = []# Lista donde se guardarán las tuplas que coincidan con la proposición
-        self.nombre_proposicion = nombre_proposicion
+        self.nombre_proposicion = None
+        self.funcion = None
+        if isinstance(valor,str):
+            self.nombre_proposicion = valor
+        elif isinstance(valor,func):
+            self.funcion = valor
     def validar(self, contexto: Dict[str, str], base: BaseConocimiento) -> bool:
-        if self.nombre_proposicion not in base.proposiciones:
+        if self.nombre_proposicion and self.nombre_proposicion not in base.proposiciones:
             raise ValueError(f"Proposición '{self.nombre_proposicion}' no existe")
         
 
@@ -310,30 +316,41 @@ class CondicionAsignacion(Condicion):
                 parametros.append(var)
         #Se debe de recorrer cada elemento de la proposicion, si los valores coinciden, se asigna el valor de la variable de asignación
 
-        proposicion = base.proposiciones[self.nombre_proposicion]
-        if not proposicion.elementos:
-            logger.debug(f"[Condicion Asignacion] No hay elementos en la proposición {self.nombre_proposicion}")
-            return False
-        if len(parametros) != proposicion.n:
-            raise ValueError(f"Cantidad de parámetros {len(parametros)} no coincide con la cantidad de individuos de la proposición {proposicion.n}")
-        for elemento in proposicion.elementos.values():
-            #Se debe comprobar los parametros con el tupla del prop son iguales, si el parametro es "_" o "" se considera que coincide y  se añade esa tupla a la variable de asignación
+        if self.nombre_proposicion is not None:
 
-            coincide = True
-            for i, param in enumerate(parametros):
-                if param not in ("_", "") and elemento.tupla[i] != param:
-                    coincide = False
-                    break
-            if coincide:
-                #Si coincide, se añade la tupla a la asignación
-                
+            proposicion = base.proposiciones[self.nombre_proposicion]
+            if not proposicion.elementos:
+                logger.debug(f"[Condicion Asignacion] No hay elementos en la proposición {self.nombre_proposicion}")
+                return False
+            if len(parametros) != proposicion.n:
+                raise ValueError(f"Cantidad de parámetros {len(parametros)} no coincide con la cantidad de individuos de la proposición {proposicion.n}")
+            for elemento in proposicion.elementos.values():
+                #Se debe comprobar los parametros con el tupla del prop son iguales, si el parametro es "_" o "" se considera que coincide y  se añade esa tupla a la variable de asignación
+
+                coincide = True
+                for i, param in enumerate(parametros):
+                    if param not in ("_", "") and elemento.tupla[i] != param:
+                        coincide = False
+                        break
+                if coincide:
+                    #Si coincide, se añade la tupla a la asignación
+                    
+                    self.asignacion.append(elemento)
+            #Si no hay asignación, se devuelve False
+            if not self.asignacion:
+                logger.debug(f"[Condicion Asignacion] No se encontraron coincidencias para la asignación")
+                return False
+            logger.debug(f"[Condicion Asignacion] Validación de asignación para {self.nombre_proposicion} con valores {parametros} y resultado {self.asignacion}")
+            return True
+        elif self.funcion is not None:
+            parametros = tuple(parametros)
+            elemento = self.funcion.run(*parametros)
+            if elemento:
                 self.asignacion.append(elemento)
-        #Si no hay asignación, se devuelve False
-        if not self.asignacion:
-            logger.debug(f"[Condicion Asignacion] No se encontraron coincidencias para la asignación")
+                return True
             return False
-        logger.debug(f"[Condicion Asignacion] Validación de asignación para {self.nombre_proposicion} con valores {parametros} y resultado {self.asignacion}")
-        return True
+        else:
+            raise ValueError(f"El valor de la asignacion no es un predicado o una funcion")
 
             
         

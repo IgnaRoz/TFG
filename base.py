@@ -29,9 +29,10 @@ OPERADORES = {
 }
 
 class Variable():
-    def __init__(self,nombre,atributo=None):
+    def __init__(self,nombre,atributo=None,agregacion = False):
         self.nombre = nombre
         self.atributo = atributo
+        self.agregacion = agregacion
 
 class Individuos:
     def __init__(self):

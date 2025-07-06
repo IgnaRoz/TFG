@@ -27,18 +27,18 @@ class Regla:
 
 
             #obtenemos el contexto local, que es un subconjunto del contexto original, pero con las variables de la condición
-            variables_cond = set()
+            variables_cond = {}
             for var in cond.variables:
                 if isinstance(var,Variable):
-                    variables_cond.add(var.nombre)
-            variables_cond = list(variables_cond)
+                    variables_cond[var.nombre]=var
+            #variables_cond = list(variables_cond)
 
 
             contexto_local = {}
-            for var in variables_cond:
-                if var in contexto:
+            for var in variables_cond.values():
+                if var.nombre in contexto:
                     # Si la variable está en el contexto, se añade al contexto local
-                    contexto_local[var] = contexto[var]
+                    contexto_local[var.nombre] = contexto[var.nombre]
                 #else:
                     # Si no está en el contexto, se deja tal cual
                     #contexto_local[var] = var
@@ -50,7 +50,7 @@ class Regla:
             var_mul = None
             contextos_locales = []#Cambiar nombre por contextos_locales
             for key in contexto_local.keys():
-                if isinstance(contexto_local[key], list) and len(contexto_local[key]) > 1:
+                if isinstance(contexto_local[key], list) and len(contexto_local[key]) > 1 and variables_cond[key].agregacion == False:
                     if var_mul is not None:
                         raise ValueError(f"Más de una variable múltiple en el contexto: {var_mul} y {key}")
                     var_mul = key
@@ -60,12 +60,27 @@ class Regla:
                 
                 for valor in valores_var_mul:
                     #El contexto local no es un diccionario de listas, sino un diccionario de valores, por lo que se debe crear un nuevo contexto local con el valor de la variable multiple
-                    contexto_local_aux = {k: v[0] for k, v in contexto_local.items() if k != var_mul}#El contexto local es el contexto original sin la variable multiple
+                    #El contexto local es el contexto original sin la variable multiple
+                    contexto_local_aux = {}
+
+                    for k, v in contexto_local.items():
+                        if k != var_mul: 
+                            if  contexto_local_aux[k].agregacion == False:       
+                                contexto_local_aux[k] = v[0] 
+                            else:
+                                contexto_local_aux[k] = v
                     contexto_local_aux[var_mul] = valor
                     contextos_locales.append(contexto_local_aux)
             else:
-                #Si no hay variable multiple, el contexto local es igual al contexto original pero sin listas
-                contexto_local = {k: v[0] for k, v in contexto_local.items()}#El contexto local es el contexto original sin listas
+                #Si no hay variable multiple, el contexto local es igual al contexto original pero sin listas, a no ser que sea una variable marcada como multiagregacion
+                #El contexto local es el contexto original sin listas
+                nuevo_contexto = {}
+                for k in list(contexto_local.keys()):
+                    if variables_cond[k].agregacion==False:
+                        contexto_local[k] = contexto_local[k][0]
+                    else:
+                        contexto_local[k] = contexto_local[k]
+                #contexto_local = {k: v[0] for k, v in contexto_local.items()}
                 contextos_locales.append(contexto_local)
 
             ok = False
