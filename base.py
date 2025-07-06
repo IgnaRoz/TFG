@@ -72,7 +72,7 @@ class Proposicion:
         for nombre_atributo in self.atributos:
             
             if not nombre_atributo in atributos.keys():
-                raise ValueError(f"No se ha econtrado el atributo{nombre_atributo} para la proposicion{self.nombre}")
+                raise ValueError(f"La proposicion{self.nombre} necesita el atributo {nombre_atributo}")
 
         #Tambien vamos a exigir es que no se añadan atributos nuevos
         for atributo in atributos:

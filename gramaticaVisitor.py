@@ -219,6 +219,11 @@ class gramaticaVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramaticaParser#listaArgLit.
+    def visitListaArgLit(self, ctx:gramaticaParser.ListaArgLitContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramaticaParser#comentarioSimple.
     def visitComentarioSimple(self, ctx:gramaticaParser.ComentarioSimpleContext):
         return self.visitChildren(ctx)

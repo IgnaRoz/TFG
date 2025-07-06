@@ -20,9 +20,26 @@ def _sustituir_parametros(contexto,variables):
                 parametros.append(contexto[var.nombre].atributos[var.atributo])
             else:
                 parametros.append(contexto[var.nombre])
+        elif isinstance(var,func) :
+            #Se podria refactorizar
+            parametros_funcion = []
+            args = var.args or []
+            for arg in args:
+                if isinstance(arg,Variable):
+                    if arg.nombre not in contexto: 
+                        raise ValueError(f"No se ha econtrado la variable {arg} en el contexto")
+                    if arg.atributo is not None : 
+                        if arg.atributo not  in contexto[arg.nombre].atributo:
+                            raise ValueError(f"No se ha econtrado el atributo {arg.atributo} en la variable {arg}")
+                        parametros_funcion.append(contexto[arg.nombre].atributos[arg.atributo])
+                    else:
+                        parametros_funcion.append(contexto[arg.nombre])
+                else:
+                    parametros_funcion.append(arg)
+            parametros.append(var.run(*args))
         else:
             parametros.append(var)
-    parametros = tuple(parametros)
+    #parametros = tuple(parametros)
     return parametros
 
 
@@ -52,23 +69,23 @@ class ConsecuenciaAsignacion(Consecuencia):
         #Si es una variable, se sustituye por su valor en el contexto
         #Si no, se deja como está, puede ser un valor literal o individuo
         
+        parametros = _sustituir_parametros(contexto,self.variables)
 
-
-        for variable in self.variables:
-            if '.' in variable:
-                var,atr = variable.split('.',1)
-           
-                if var in contexto:
-                    if atr not in contexto[var].atributos:
-                        raise ValueError(f"El atributo {atr} no esta en la variable {var}")
-                    param = contexto[var].atributos[atr]
-                    parametros.append(param)
-                    continue  
-            else:
-                if variable in contexto:
-                    parametros.append(contexto[variable])
-                    continue                  
-            parametros.append(variable)
+        #for variable in self.variables:
+        #    if '.' in variable:
+        #        var,atr = variable.split('.',1)
+        #   
+        #        if var in contexto:
+        #            if atr not in contexto[var].atributos:
+        #                raise ValueError(f"El atributo {atr} no esta en la variable {var}")
+        #            param = contexto[var].atributos[atr]
+        #            parametros.append(param)
+        #            continue  
+        #    else:
+        #        if variable in contexto:
+        #            parametros.append(contexto[variable])
+        #            continue                  
+        #    parametros.append(variable)
 
 
         #for i_contexto in contexto:
@@ -92,8 +109,11 @@ class ConsecuenciaAsignacion(Consecuencia):
 #
 
         tupla = tuple(parametros)
-        base.proposiciones[self.proposicion].add(tupla)
-        logger.info(f"[Accion] Add {tupla} to {self.proposicion}")
+        try:
+            base.proposiciones[self.proposicion].add(tupla)
+            logger.info(f"[Accion] Add {tupla} to {self.proposicion}")
+        except ValueError as e:
+            logger.warning(e)
 
 class ConsecuenciaEliminacion(Consecuencia):
     def __init__(self, proposicion: str,  variables: List[str]):
@@ -105,8 +125,15 @@ class ConsecuenciaEliminacion(Consecuencia):
         tupla = tuple(contexto.get(p, p) for p in self.variables)
         if self.proposicion not in base.proposiciones:
             raise ValueError(f"Proposición '{self.proposicion}' no existe")
-        logger.info(f"[Accion] Eliminar {tupla} de {self.proposicion}")
+        
+        parametros = []
+    
+        parametros = _sustituir_parametros(contexto,self.variables)
+
+        tupla = tuple(parametros)
+
         base.proposiciones[self.proposicion].eliminar(tupla)
+        logger.info(f"[Accion] Eliminar {tupla} de {self.proposicion}")
 
 class ConsecuenciaFuncion(Consecuencia):
     def __init__(self, variables,funcion):
@@ -168,6 +195,7 @@ class ConsecuenciaModificacion(Consecuencia):
                 valor = contexto[self.valor.nombre]
         elif isinstance(self.valor,func):
             parametros =_sustituir_parametros(contexto,self.valor.args)
+            parametros = tuple(parametros)
             valor = self.valor.run(*parametros)
         elif isinstance(self.valor,int):
             valor = self.valor

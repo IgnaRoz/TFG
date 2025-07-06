@@ -21,7 +21,7 @@ class Regla:
         #contexto = {}
         #for param, valor in zip(self.parametros, valores):
         #    contexto[param] =valor
-
+        indice = 1
         logger.info(f"[Regla:{self.nombre}] Iniciar validación con contexto {contexto}")
         for cond in self.condiciones:
 
@@ -79,7 +79,7 @@ class Regla:
                     ok = True
 
                 else:
-                    logger.debug(f"[Regla:{self.nombre}] FALLA en contexto local {contexto_local} para condición {type(cond).__name__}")
+                    logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] FALLA en contexto local {contexto_local} para condición {type(cond).__name__}")
                     if var_mul is not None:
                         #Si falla, se elimina el valor de la variable multiple del contexto original
                         contexto[var_mul].remove(contexto_local[var_mul])#Recuerda que contexto[var_mul] es una lista
@@ -89,7 +89,7 @@ class Regla:
             #Si la condicion es de tipo CondicionAsignacion, se debe comprobar que la asignación se ha realizado correctamente
             if isinstance(cond, CondicionAsignacion):
                 if not cond.asignacion:
-                    logger.debug(f"[Regla:{self.nombre}] No se encontraron coincidencias para la asignación en contexto {contexto_local}")
+                    logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] No se encontraron coincidencias para la asignación en contexto {contexto_local}")
                     return False , contexto
                 else:
                     #Si la asignación se ha realizado correctamente, se debe añadir al contexto
@@ -97,16 +97,17 @@ class Regla:
                     contexto[cond.variable_asignacion].extend(cond.asignacion)
             
 
-            logger.debug(f"[Regla:{self.nombre}] Resultado condición '{type(cond).__name__}': {ok}")
+            logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] Resultado condición '{type(cond).__name__}': {ok}")
             if not ok:
                 #logger.warning(f"[Regla:{self.nombre}] FALLA en contexto {contexto}")
                 return False , contexto
+            indice +=1
         logger.info(f"[Regla:{self.nombre}] VALIDADA correctamente para {contexto}")
         return True , contexto
 
     def ejecutar(self, valores: List[str], base: BaseConocimiento):
         boolean , contexto = self.validar(valores, base)
-
+        indice = 1 #Para informar en el loger de la posicion de la consecuencia
         if boolean:
             logger.info(f"[Regla:{self.nombre}] Ejecutando consecuencia en {valores}")
             #contexto = dict(zip(self.parametros, valores))

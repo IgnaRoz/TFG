@@ -6,19 +6,19 @@ Prop Profesor(Usuario);
 Prop Libro(Libro);
 Prop Disponible(Libro);
 
-Accion PrestarLibro(U,L):
+
+Accion Test(U,L):
     Condiciones:
-
+        Usuario(Biblioteca.getUsuario());
         P = Prestamos(Biblioteca.getUsuario(),L);
+        P.Usuario == Biblioteca.getUsuario();
         Usuario(P.Usuario);
+        P.Usuario == U;
+        P.fecha_devolucion == P.fecha_devolucion;
     Consecuencias:
-        Biblioteca.concederPrestamo(P.Usuario,P.Libro); 
-        Biblioteca.print("fecha_devolucion");
-        Biblioteca.print(P.fecha_devolucion) ;     
-        P.fecha_devolucion += 7;
-        Biblioteca.print("fecha_devolucion");
-        Biblioteca.print(P.fecha_devolucion) ; 
-
+        Profesor(Biblioteca.getUsuario());
+        Profesor(P.Usuario);
+        Usuario("usuario");
 
 //Inicializacion
 add Usuario(“nacho”){libros_Prestados=0};
@@ -41,5 +41,11 @@ add Prestamos("nacho",“El señor de los anillos”){fecha_devolucion=0};
 add Prestamos("juan",“1984”){fecha_devolucion=1};
 add Prestamos("nacho",“Dune”){fecha_devolucion=1};
 
+
+
+
+
+
+
 //Test
-Run PrestarLibro(“nacho”, “El señor de los anillos”);
+Run Test(“nacho”, “El señor de los anillos”);

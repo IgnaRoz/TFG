@@ -97,10 +97,14 @@ class MotorEjecucion:
             self.reglas.append(regla)
     #Modificar, deberia poder obtener directamente la regla por su nombre(opcional)
     def ejecutar_accion(self, nombre_accion: str, valores: List[str]):
+        aux = False
         for regla in self.acciones:
             if regla.nombre == nombre_accion:
                 regla.ejecutar(valores, self.base)
+                aux = True
                 break
+        if not aux:
+            raise ValueError(f"No se ha econtrado la accion: {nombre_accion}")
 
     # Nuevas utilidades -------------------------------------------------
     def set_archivo(self, ruta: str):

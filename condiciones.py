@@ -75,6 +75,23 @@ class CondicionSimple(Condicion):
                     parametros.append(contexto[variable.nombre].atributos[variable.atributo])
                 else:
                     parametros.append(contexto[variable.nombre])
+            elif isinstance(variable,func) :
+                #Se podria refactorizar
+                parametros_funcion = []
+                args = variable.args or []
+                for arg in args:
+                    if isinstance(arg,Variable):
+                        if arg.nombre not in contexto: 
+                           raise ValueError(f"No se ha econtrado la variable {arg} en el contexto")
+                        if arg.atributo is not None : 
+                            if arg.atributo not  in contexto[arg.nombre].atributo:
+                                raise ValueError(f"No se ha econtrado el atributo {arg.atributo} en la variable {arg}")
+                            parametros_funcion.append(contexto[arg.nombre].atributos[arg.atributo])
+                        else:
+                            parametros_funcion.append(contexto[arg.nombre])
+                    else:
+                        parametros_funcion.append(arg)
+                parametros.append(variable.run(*args))
             else:
                 #Se considera que es un tipo basico
                 parametros.append(variable)
@@ -85,7 +102,7 @@ class CondicionSimple(Condicion):
 
         tupla = tuple(parametros)
         resultado = base.proposiciones[self.nombre_proposicion].existe(tupla)
-        logger.debug(f"[{self.nombre_proposicion}] Validación simple {tupla} -> {resultado}")
+        logger.debug(f"[Condicion Simple] Validación simple de la proposicion {self.nombre_proposicion} con valores {tupla} y resultado {resultado}")
         return resultado
 
 class CondicionFuncion(Condicion):
@@ -150,11 +167,29 @@ class CondicionComparacion(Condicion):#REHACER
                         parametros.append(contexto[var.nombre].atributos[var.atributo])
                     else:
                         parametros.append(contexto[var.nombre])
+                elif isinstance(var,func) :
+                    #Se podria refactorizar
+                    parametros_funcion = []
+                    args = var.args or []
+                    for arg in args:
+                        if isinstance(arg,Variable):
+                            if arg.nombre not in contexto: 
+                                raise ValueError(f"No se ha econtrado la variable {arg} en el contexto")
+                            if arg.atributo is not None : 
+                                if arg.atributo not  in contexto[arg.nombre].atributo:
+                                    raise ValueError(f"No se ha econtrado el atributo {arg.atributo} en la variable {arg}")
+                                parametros_funcion.append(contexto[arg.nombre].atributos[arg.atributo])
+                            else:
+                                parametros_funcion.append(contexto[arg.nombre])
+                        else:
+                            parametros_funcion.append(arg)
+
+                    parametros.append(var.run(*args))
                 else:
                     parametros.append(var)
             parametros = tuple(parametros)
 
-            return self.funcion.run(*parametros)
+            return expr.run(*parametros)
 
         else:
             #Se considera que es un tipo basico
@@ -180,7 +215,7 @@ class CondicionComparacion(Condicion):#REHACER
         val_izq = self._resolver_valor(self.lado_izq, contexto, base)
         val_der = self._resolver_valor(self.lado_der, contexto, base)
         resultado = OPERADORES[self.comparador](val_izq, val_der)
-        logger.debug(f"[Comparacion] {val_izq} {self.comparador.value} {val_der} -> {resultado}")
+        logger.debug(f"[Condicion Comparacion] {val_izq} {self.comparador.value} {val_der} -> {resultado}")
         return resultado
 
 
@@ -196,14 +231,17 @@ class CondicionLogica(Condicion):
 
     def validar(self, contexto: Dict[str, str], base: BaseConocimiento) -> bool:
         if self.operador == "AND":
-            logger.debug(f"[CondicionLogica] Validando condiciones con AND")
+            logger.debug(f"[Condicion Logica AND] Validando condiciones con AND")
             resultado = all(condicion.validar(contexto, base) for condicion in self.condiciones)
+            #logger.debug(f"[Condicion Logica AND] Resultado AND -> {resultado}")
         elif self.operador == "OR":
-            logger.debug(f"[CondicionLogica] Validando condiciones con OR")
+            logger.debug(f"[Condicion Logica OR] Validando condiciones con OR")
             resultado = any(condicion.validar(contexto, base) for condicion in self.condiciones)
+            #logger.debug(f"[Condicion Logica OR] Resultado OR -> {resultado}")
         else:
             raise ValueError(f"Operador lógico '{self.operador}' no reconocido")
-        logger.debug(f"[CondicionLogica] Resultado {self.operador} -> {resultado}")
+        #en principio no hay condicion NOT aqui, ya hay una condicion negacion
+        logger.debug(f"[Condicion Logica NOT] Resultado {self.operador} -> {resultado}")
         return resultado
     
 class CondicionNegacion(Condicion):
@@ -212,9 +250,9 @@ class CondicionNegacion(Condicion):
         self.condicion = condicion
 
     def validar(self, contexto: Dict[str, str], base: BaseConocimiento) -> bool:
-        logger.debug(f"[CondicionNegacion] Validando condición de negación")
+        logger.debug(f"[Condicion Negacion] Validando condición de negación")
         resultado = not self.condicion.validar(contexto, base)
-        logger.debug(f"[CondicionNegacion] Resultado NOT -> {resultado}")
+        #logger.debug(f"[Condicion Negacion] Resultado NOT -> {resultado}")
         return resultado
     
 class CondicionAsignacion(Condicion):
@@ -274,7 +312,7 @@ class CondicionAsignacion(Condicion):
 
         proposicion = base.proposiciones[self.nombre_proposicion]
         if not proposicion.elementos:
-            logger.debug(f"[{self.nombre_proposicion}] No hay elementos en la proposición")
+            logger.debug(f"[Condicion Asignacion] No hay elementos en la proposición {self.nombre_proposicion}")
             return False
         if len(parametros) != proposicion.n:
             raise ValueError(f"Cantidad de parámetros {len(parametros)} no coincide con la cantidad de individuos de la proposición {proposicion.n}")
@@ -292,9 +330,9 @@ class CondicionAsignacion(Condicion):
                 self.asignacion.append(elemento)
         #Si no hay asignación, se devuelve False
         if not self.asignacion:
-            logger.debug(f"[{self.nombre_proposicion}] No se encontraron coincidencias para la asignación")
+            logger.debug(f"[Condicion Asignacion] No se encontraron coincidencias para la asignación")
             return False
-        logger.debug(f"[{self.nombre_proposicion}] Validación de asignación {parametros} -> {self.asignacion}")
+        logger.debug(f"[Condicion Asignacion] Validación de asignación para {self.nombre_proposicion} con valores {parametros} y resultado {self.asignacion}")
         return True
 
             

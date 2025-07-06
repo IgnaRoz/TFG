@@ -4,18 +4,63 @@ Prop Usuario(Usuario){libros_prestados};
 Prop Profesor(Usuario);
 Prop Becario(Usuario);
 Prop Sancionado(Usuario);
-Prop Prestamos(Usuario,Libro){fecha_devolucion};
+Prop Prestamos(Usuario,Libro);
 Prop Libro(Libro);
 Prop Disponible(Libro);
 
 Accion PrestarLibro(Usuario,Libro):
+"""
+Descripción:Se registra el prestamos de un libro a un Usuario.
+Entrada:(Usuario,Libro)
+"""
     Condiciones:
         U = Usuario(Usuario);
-        U.libros_prestados < 3;
-        NOT ( Sancionado(Usuario));
+        OR(
+            U.libros_prestados < 3; 
+            Profesor(U);//Los profesores no tiene limite
+        );
+        NOT ( Sancionado(Usuario) );
         NOT ( Prestamos(_,Libro) );
     Consecuencias:
+        Prestamos(Usuario,Libro);
+        U.libros_prestados += 1;
         Biblioteca.concederPrestamo(Usuario,Libro);
+
+Accion Sancionar(Usuario):
+    Condiciones:
+        Usuario(Usuario);
+        NOT(Profesor(Usuario)); //Los profesores no pueden ser sancionados
+    Consecuencias:
+        Sancionado(Usuario);
+        Biblioteca.print("Usuario Sancionado");
+
+Accion DevolverLibro(Libro):
+    Condiciones:
+        Libro(Libro);
+        P = Prestamos(_,Libro);
+    Consecuencias:
+        Biblioteca.print("Libro devuelto");
+
+Accion MostrarLibros():
+    Condiciones:
+        L = Libro(_);
+    Consecuencias:
+        Biblioteca.print("Libros registrados");
+        Biblioteca.print(L.Libro);
+
+Accion MostrarUsuarios():
+    Condiciones:
+        U = Usuario(_);
+    Consecuencias:
+        Biblioteca.print("Usuarios registrados");
+        Biblioteca.print(U.Usuario);
+
+Accion MostrarLibrosPrestados():
+    Condiciones:
+        P = Prestamos(_,_);
+    Consecuencias:
+        Biblioteca.print("Prestamos registrados");
+        Biblioteca.print(P.Libro);
 
 //Inicializacion
 add Usuario(“nacho”){libros_prestados=0};
@@ -34,9 +79,13 @@ add Libro(“Dune”);
 //add Libro(“Dune”);
 add Disponible(“Dune”); // Marca como disponible
 
-add Prestamos("nacho",“El señor de los anillos”){fecha_devolucion=0};
-add Prestamos("juan",“1984”){fecha_devolucion=1};
-add Prestamos("nacho",“Dune”){fecha_devolucion=1};
+add Prestamos("nacho",“El señor de los anillos”) ;
+add Prestamos("juan",“1984”);
+add Prestamos("nacho",“Dune”);
 
 //Test
 Run PrestarLibro(“nacho”, “El señor de los anillos”);
+Run DevolverLibro(“El señor de los anillos”);
+Run MostrarLibros();
+Run MostrarUsuarios();
+Run MostrarLibrosPrestados();

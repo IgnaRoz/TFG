@@ -279,12 +279,24 @@ class MotorVisitor(gramaticaVisitor):
         #  Fallback
         return ctx.getText()
     def visitEjecucion(self, ctx: gramaticaParser.EjecucionContext):
+        # 1. Nombre de la acción
         nombre = ctx.idName().getText()
-        args = [self._parse_arg_lit(a) for a in ctx.argLit()]
+
+        # 2. ¿Hay lista de argumentos?
+        lista_ctx = ctx.listaArgLit()      # devuelve None si no aparece
+
+        if lista_ctx:
+            # Accedemos a los 'argLit' que cuelgan de la lista
+            args = [self._parse_arg_lit(a) for a in lista_ctx.argLit()]
+        else:
+            args = []
+
+        # 3. Ejecutamos la acción con manejo de errores
         try:
             self.motor.ejecutar_accion(nombre, args)
         except Exception as e:
             logger.error(str(e))
+
         return None
 
     def visitElemento(self, ctx: gramaticaParser.ElementoContext):
@@ -501,7 +513,7 @@ class MotorVisitor(gramaticaVisitor):
             return ctx.INDIVIDUO().getText()
         # VARIABLE sola
         elif ctx.VARIABLE():
-            return ctx.VARIABLE().getText()
+            return Variable(ctx.VARIABLE().getText())
         # NUMBER
         elif ctx.NUMBER():
             return int(ctx.NUMBER().getText())
@@ -547,11 +559,11 @@ class MotorVisitor(gramaticaVisitor):
                 variables.append(valor.args)
             consecuencia = ConsecuenciaModificacion(objetivo=objetivo,operacion=op,valor=valor,variables=variables)
         elif ctx.borrado():
-            prop, args = self._parse_predicado(ctx.borrado().predicado())
+            prop, args = self.visitPredicado(ctx.borrado())
             #vars_ = [a for a in args if a[:1].isupper()]
             consecuencia = ConsecuenciaEliminacion(prop, args)
         elif ctx.predicado():
-            prop, args = self._parse_predicado(ctx.predicado())
+            prop, args = self.visitPredicado(ctx.predicado())
             #vars_ = [a for a in args if a[:1].isupper()]
             consecuencia = ConsecuenciaAsignacion(prop, args)
         elif ctx.funcion():
@@ -574,6 +586,9 @@ class MotorVisitor(gramaticaVisitor):
 
         return super().visitOperandoDrc(ctx)
 
+    def visitBorrado(self, ctx):
+        return self.visitPredicado(ctx.predicado())
+        return super().visitBorrado(ctx)
 
     def visitErrorNode(self, node: ErrorNode):
         #logger.error(f"Error de sintaxis en '{node.getText()}' en {node.symbol.line}:{node.symbol.column}")    

@@ -205,9 +205,12 @@ argLit
 
 
 ejecucion
-    : 'Run' idName '(' argLit (',' argLit)* ')' ';'
+    : 'Run' idName '(' listaArgLit? ')' ';'
     ;
 
+listaArgLit
+    : argLit (',' argLit)*
+    ;
 comentarioSimple
     : COMMENT_SIMPLE
     ;
