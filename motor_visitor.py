@@ -246,7 +246,7 @@ class MotorVisitor(gramaticaVisitor):
     def visitBloqueValores(self, ctx):
          
          if ctx.listaParejasValor():
-            retorno = self.visit(ctx.listaParejasValor())
+            retorno = self.visitListaParejasValor(ctx.listaParejasValor())
 
             return retorno 
          return {}   
@@ -258,7 +258,7 @@ class MotorVisitor(gramaticaVisitor):
     def visitParejaValor(self, ctx):
         nombre =   ctx.idName().getText()
         valor = self.visit(ctx.valor())
-        print(valor)
+        #print(valor)
         return nombre,valor
     def visitValor(self, ctx):
         if ctx.NUMBER():
@@ -452,6 +452,11 @@ class MotorVisitor(gramaticaVisitor):
                 return Variable(ctx.VARIABLE().getText())
         elif ctx.getText()=="_":
             return '_'
+        elif ctx.STRING():
+                individuo = ctx.STRING().getText()
+
+                return individuo[1:-1]#para eliminar las comillas
+        #No detecta individuos como "nacho"
         return super().visitParamPredicado(ctx)
 
     def visitOperacionLogica(self, ctx: gramaticaParser.OperacionLogicaContext):
@@ -559,13 +564,16 @@ class MotorVisitor(gramaticaVisitor):
                 variables.append(valor.args)
             consecuencia = ConsecuenciaModificacion(objetivo=objetivo,operacion=op,valor=valor,variables=variables)
         elif ctx.borrado():
-            prop, args = self.visitPredicado(ctx.borrado())
+            prop, args = self.visitBorrado(ctx.borrado())
             #vars_ = [a for a in args if a[:1].isupper()]
             consecuencia = ConsecuenciaEliminacion(prop, args)
         elif ctx.predicado():
             prop, args = self.visitPredicado(ctx.predicado())
             #vars_ = [a for a in args if a[:1].isupper()]
-            consecuencia = ConsecuenciaAsignacion(prop, args)
+            atributos = {}
+            if ctx.bloqueValores():
+                atributos = self.visitBloqueValores(ctx.bloqueValores())
+            consecuencia = ConsecuenciaAsignacion(prop, args,atributos=atributos)
         elif ctx.funcion():
             funcion = self.visitFuncion(ctx.funcion())
             consecuencia = ConsecuenciaFuncion(funcion.args,funcion)

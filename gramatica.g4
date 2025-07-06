@@ -150,7 +150,7 @@ consecuencia
     : asignacion
     | funcion
     | borrado
-    | predicado
+    | predicado bloqueValores?
     ;
 
 asignacion

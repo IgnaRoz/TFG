@@ -16,9 +16,11 @@ Accion Test(U,L):
         P.Usuario == U;
         P.fecha_devolucion == P.fecha_devolucion;
     Consecuencias:
-        Profesor(Biblioteca.getUsuario());
-        Profesor(P.Usuario);
-        Usuario("usuario");
+
+        Usuario("usuario"){libros_Prestados=0};
+        Biblioteca.print("hola");
+        P.fecha_devolucion += 1;
+        DEL Usuario("usuario");
 
 //Inicializacion
 add Usuario(“nacho”){libros_Prestados=0};

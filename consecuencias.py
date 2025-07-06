@@ -53,9 +53,10 @@ class Consecuencia(ABC):
 
 
 class ConsecuenciaAsignacion(Consecuencia):
-    def __init__(self, proposicion: str,  variables: List[str]):
+    def __init__(self, proposicion: str,  variables: List[str],atributos=None):
         super().__init__(variables)
         self.proposicion = proposicion
+        self.atributos = atributos
         #self.parametros = parametros
 
     def ejecutar(self, contexto: Dict[str, str], base: BaseConocimiento):
@@ -109,8 +110,12 @@ class ConsecuenciaAsignacion(Consecuencia):
 #
 
         tupla = tuple(parametros)
+
+        #Falta sustituir paramteros en atributos
+        atributos = self.atributos
+        atributos_parametros ={}
         try:
-            base.proposiciones[self.proposicion].add(tupla)
+            base.proposiciones[self.proposicion].add(tupla,atributos)
             logger.info(f"[Accion] Add {tupla} to {self.proposicion}")
         except ValueError as e:
             logger.warning(e)
@@ -129,7 +134,6 @@ class ConsecuenciaEliminacion(Consecuencia):
         parametros = []
     
         parametros = _sustituir_parametros(contexto,self.variables)
-
         tupla = tuple(parametros)
 
         base.proposiciones[self.proposicion].eliminar(tupla)
