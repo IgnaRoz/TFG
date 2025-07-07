@@ -256,8 +256,14 @@ class MotorVisitor(gramaticaVisitor):
         return {k: v for k, v in (self.visit(p) for p in ctx.parejaValor())}
 
     def visitParejaValor(self, ctx):
-        nombre =   ctx.idName().getText()
-        valor = self.visit(ctx.valor())
+        nombre =   ctx.idName(0).getText()
+        if ctx.valor():
+            valor = self.visit(ctx.valor())
+        elif ctx.VARIABLE() and ctx.idName(1):
+            valor = Variable(ctx.VARIABLE().getText(), ctx.idName(1).getText())
+        elif ctx.VARIABLE():
+            valor = Variable(ctx.VARIABLE().getText())
+
         #print(valor)
         return nombre,valor
     def visitValor(self, ctx):
@@ -582,6 +588,9 @@ class MotorVisitor(gramaticaVisitor):
             atributos = {}
             if ctx.bloqueValores():
                 atributos = self.visitBloqueValores(ctx.bloqueValores())
+            #for atributo in atributos:
+            #    if isinstance(atributos[atributo],Variable):
+            #        args.append(atributos[atributo])
             consecuencia = ConsecuenciaAsignacion(prop, args,atributos=atributos)
         elif ctx.funcion():
             funcion = self.visitFuncion(ctx.funcion())
@@ -600,6 +609,9 @@ class MotorVisitor(gramaticaVisitor):
             return self.visitFuncion(ctx.funcion())
         elif ctx.NUMBER():
             return int(ctx.NUMBER().getText())
+        elif ctx.VARIABLE():
+            variable = Variable(ctx.VARIABLE().getText())
+        return variable
 
         return super().visitOperandoDrc(ctx)
 

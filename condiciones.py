@@ -132,7 +132,7 @@ class CondicionFuncion(Condicion):
         return self.funcion.run(*parametros)
 
 
-class CondicionComparacion(Condicion):#REHACER
+class CondicionComparacion(Condicion):
     def __init__(self, lado_izq, comparador: TipoComparacion, lado_der, variables: List[str]):
         super().__init__(variables)
         self.lado_izq = lado_izq
@@ -144,10 +144,10 @@ class CondicionComparacion(Condicion):#REHACER
 
         if isinstance(expr,Variable):
             if expr.nombre not in contexto:
-                    raise ValueError(f"La varaible {expr.nobmre} no esta en el contexto")
+                    raise ValueError(f"La varaible {expr.nombre} no esta en el contexto")
             if expr.atributo is not None:
                 if expr.atributo not in contexto[expr.nombre].atributos:
-                    raise ValueError(f"La variable {expr.nobmre} no tiene el atributo {expr.atributo}")
+                    raise ValueError(f"La variable {expr.nombre} no tiene el atributo {expr.atributo}")
                 return contexto[expr.nombre].atributos[expr.atributo]
             else:
                 return contexto[expr.nombre]

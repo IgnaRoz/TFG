@@ -163,6 +163,7 @@ operandoDrc
     : funcion
     | operandoIzq
     | NUMBER
+    | VARIABLE
     ;
 
 OpIgual
@@ -190,7 +191,7 @@ listaParejasValor
     ;
 
 parejaValor
-    : idName '=' valor
+    : idName '=' (valor | VARIABLE '.' idName | VARIABLE)
     ;   
 
 valor                           

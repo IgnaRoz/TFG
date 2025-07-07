@@ -4,7 +4,7 @@ import logging
 from base import BaseConocimiento,Variable
 logger = logging.getLogger("LOG")
 from condiciones import Condicion, CondicionAsignacion
-from consecuencias import Consecuencia
+from consecuencias import Consecuencia, ConsecuenciaAsignacion
 
 
 class Regla:
@@ -133,6 +133,10 @@ class Regla:
                 for var in c.variables:
                     if isinstance(var,Variable):
                         variables_cons[var.nombre]=var
+                if isinstance(c,ConsecuenciaAsignacion):
+                    for atributo in c.atributos:
+                        if isinstance(c.atributos[atributo],Variable):
+                            variables_cons[c.atributos[atributo].nombre] = c.atributos[atributo]
 
                 #variables_cons = list(variables_cons)
 

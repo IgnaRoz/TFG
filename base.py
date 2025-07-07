@@ -79,7 +79,7 @@ class Proposicion:
         for atributo in atributos:
             if atributo not in self.atributos:
                 raise ValueError(f"La proposicion {self.nombre} no tiene el atributo {atributo}")
-
+    
         for i,parametro in enumerate(self.parametros):
             atributos[parametro] = tupla[i]
 

@@ -1,0 +1,104 @@
+from System import System;
+
+Prop Cliente(Cliente){pedidos};
+Prop Empleado(Empleado);
+Prop Chef(Empleado);
+Prop Plato(Plato){precio,stock};
+Prop Orden(Cliente,Plato){cantidad};
+Prop Disponible(Plato);
+
+Accion TomarPedido(C,P,Cnt):
+"""
+Registra un nuevo pedido de un cliente
+"""
+    Condiciones:
+        Cl = Cliente(C);
+        Pl = Plato(P);
+        Pl.stock >= Cnt;
+        Disponible(P);
+        OR(
+            Cl.pedidos < 3;
+            Chef(Cl); // Un chef puede pedir sin limite
+        );
+        NOT(Orden(C,P));
+    Consecuencias:
+        Orden(C,P){cantidad=Cnt};
+        Cl.pedidos += 1;
+        Pl.stock -= Cnt;
+
+        System.print("Pedido {0} de {1} registrado",C,P);
+
+Accion CancelarPedido(C,P):
+    Condiciones:
+        O = Orden(C,P);
+    Consecuencias:
+        DEL Orden(C,P);
+        System.print("Pedido cancelado para {0} de {1}",C,P);
+
+Accion QuitarDelMenu(P):
+    Condiciones:
+        Plato(P);
+        Disponible(P);
+    Consecuencias:
+        DEL Disponible(P);
+        System.print("{0} ya no esta disponible", P);
+
+Accion HacerDisponible(P):
+    Condiciones:
+        Pl = Plato(P);
+        NOT(Disponible(P));
+    Consecuencias:
+        Disponible(P);
+        System.print("{0} disponible otra vez", P);
+
+Accion Cocinar(E,P,Cnt):
+    Condiciones:
+        Chef(E);
+        Pl = Plato(P);
+    Consecuencias:
+        Pl.stock += Cnt;
+        Disponible(P);
+        System.print("Se cocinaron {0} de {1}",Cnt,P);
+
+Accion MostrarPlatos():
+    Condiciones:
+        P = Plato(_);
+    Consecuencias:
+        System.print("Platos disponibles:");
+        System.print(P.Plato);
+
+Accion ResumenPedidos():
+    Condiciones:
+        O = Orden(_,_);
+        Total = System.sum(*O,"cantidad");
+        MaxP = System.max(*O,"cantidad");
+        MinP = System.min(*O,"cantidad");
+    Consecuencias:
+        System.print("Pedidos: {0}",O);
+        System.print("Total de pedidos {0}", Total);
+        System.print("Pedido maximo {0}", MaxP.cantidad);
+        System.print("Pedido minimo {0}", MinP.cantidad);
+
+//Inicializacion
+add Cliente("ana"){pedidos=0};
+add Cliente("carlos"){pedidos=0};
+add Empleado("luis");
+add Chef("luis");
+add Plato("paella"){precio=12,stock=10};
+add Disponible("paella");
+add Plato("pizza"){precio=9,stock=5};
+add Disponible("pizza");
+add Plato("ensalada"){precio=7,stock=8};
+add Disponible("ensalada");
+
+Run TomarPedido("ana","paella",2);
+Run TomarPedido("carlos","pizza",1);
+Run ResumenPedidos();
+Run MostrarPlatos();
+Run CancelarPedido("carlos","pizza");
+Run TomarPedido("carlos","paella",7);
+Run ResumenPedidos();
+Run Cocinar("luis","ensalada",3);
+Run QuitarDelMenu("pizza");
+Run HacerDisponible("pizza");
+Run MostrarPlatos();

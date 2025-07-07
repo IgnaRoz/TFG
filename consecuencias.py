@@ -113,9 +113,22 @@ class ConsecuenciaAsignacion(Consecuencia):
 
         #Falta sustituir paramteros en atributos
         atributos = self.atributos
-        atributos_parametros ={}
+        atributos_parametros = {}
+        for atributo_nombre, atributo in atributos.items():
+            if isinstance(atributo, Variable):
+                if atributo.nombre not in contexto:
+                    raise ValueError(f"No se ha econtrado la variable {atributo} en el contexto")
+                if atributo.atributo is not None:
+                    if atributo.atributo not in contexto[atributo.nombre].atributos:
+                        raise ValueError(f"No se ha econtrado el atributo {atributo.atributo} en la variable {atributo}")
+                    atributos_parametros[atributo_nombre] = contexto[atributo.nombre].atributos[atributo.atributo]
+                else:
+                    atributos_parametros[atributo_nombre] = contexto[atributo.nombre]
+            else:
+                atributos_parametros[atributo_nombre] = atributo
+
         try:
-            base.proposiciones[self.proposicion].add(tupla,atributos)
+            base.proposiciones[self.proposicion].add(tupla,atributos_parametros)
             logger.info(f"[Accion] Add {tupla} to {self.proposicion}")
         except ValueError as e:
             logger.warning(e)
