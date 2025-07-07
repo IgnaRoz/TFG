@@ -110,6 +110,12 @@ class MotorEjecucion:
     def set_archivo(self, ruta: str):
         self.archivo = ruta
 
+    def reset(self):
+        """Elimina todas las reglas y proposiciones cargadas."""
+        self.reglas.clear()
+        self.acciones.clear()
+        self.base = BaseConocimiento()
+
     def cargar_archivo(self):
         if not self.archivo:
             return
@@ -117,8 +123,12 @@ class MotorEjecucion:
         from gramaticaLexer import gramaticaLexer
         from gramaticaParser import gramaticaParser
         from motor_visitor import MotorVisitor
+        try:
 
-        stream = FileStream(self.archivo, encoding="utf-8")
+            stream = FileStream(self.archivo, encoding="utf-8")
+        except FileNotFoundError:
+            logger.error(f"Archivo no encontrado: {self.archivo}")
+            return
         lexer = gramaticaLexer(stream)
         parser_error = ErrorListener()
         lexer.removeErrorListeners()

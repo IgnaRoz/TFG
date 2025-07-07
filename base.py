@@ -103,8 +103,14 @@ class ElementoProposicion:
         self.nombre_prop = nombre_prop
         self.tupla = tupla
         self.atributos = atributos 
-
-
+    def __str__(self):
+        # Formatea la tupla sin espacios: "(1,2,3)"
+        tupla_str = "(" + ",".join(str(x) for x in self.tupla) + ")"
+        # Formatea los atributos como "clave1:valor1,clave2:valor2"
+        attrs_str = ",".join(f"{k}:{v}" for k, v in self.atributos.items())
+        return f"{self.nombre_prop}{tupla_str}{{{attrs_str}}}"
+    def __repr__(self):
+        return self.__str__()
 
 class Categoria:
     def __init__(self, nombre: str, esquema: Dict[str, type]):

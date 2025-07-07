@@ -3,15 +3,46 @@ import sys
 import shlex
 
 COMANDOS = {
-    'run': 'Ejecuta una acción con los parámetros dados.',
-    'add': 'Añade una proposición con los parámetros dados.',
-    'load': 'Carga un archivo de configuración.',
-    'exit': 'Sale del programa.',
-    'quit': 'Sale del programa.',
-    'help': 'Muestra esta ayuda. help accion <accion> para más detalles de una accion.',
-    'get': 'Obtiene todos los elementos de una proposición específica. Uso: get proposicion <nombre_proposicion>.',
-    'acciones': 'Lista todas las acciones disponibles.',
-    'proposiciones': 'Lista todas las proposiciones disponibles.',
+    'run': {
+        'uso': 'run <accion> [param1] [param2] ...',
+        'descripcion': 'Ejecuta una acción con los parámetros dados.'
+    },
+    'add': {
+        'uso': 'add <proposicion> [param1] [param2] ... <nombre_atributo1>:<valor1> ...',
+        'descripcion': 'Añade una proposición con parámetros y atributos.'
+    },
+    'load': {
+        'uso': 'load <archivo>',
+        'descripcion': 'Carga un archivo de configuración.'
+    },
+    'reset': {
+        'uso': 'reset',
+        'descripcion': 'Elimina todas las reglas y proposiciones cargadas.'
+    },
+    'exit': {
+        'uso': 'exit',
+        'descripcion': 'Sale del programa.'
+    },
+    'quit': {
+        'uso': 'quit',
+        'descripcion': 'Sale del programa.'
+    },
+    'help': {
+        'uso': 'help [comando] \nhelp accion <nombre accion> \nhelp proposicion <nombre proposicion>' ,
+        'descripcion': 'Muestra ayuda general, de un comando específico o informacion sobre una accion o proposicion.'
+    },
+    'get': {
+        'uso': 'get proposicion <nombre_proposicion>',
+        'descripcion': 'Obtiene todos los elementos de una proposición específica.'
+    },
+    'acciones': {
+        'uso': 'acciones',
+        'descripcion': 'Lista todas las acciones disponibles.'
+    },
+    'proposiciones': {
+        'uso': 'proposiciones',
+        'descripcion': 'Lista todas las proposiciones disponibles.'
+    },
 }
 class Terminal:
     
@@ -51,9 +82,13 @@ class Terminal:
             self.motor.cargar_archivo()
             return
 
-        # 5) Para run/new/add se esperan al menos un 'prop' y posibles parámetros
-        
-        elif verb  in ('run', 'add'):
+        # 5) Para run/add se esperan al menos un 'prop' y posibles parámetros
+        elif verb == 'reset':
+            # Reinicia el motor borrando reglas y proposiciones
+            self.motor.reset()
+            print("Motor reiniciado")
+            return
+        elif verb == 'run':
             if len(tokens) < 2:
                 print(f"Uso: {verb} <Comando> [param1] [param2] ...")
                 return
@@ -65,17 +100,56 @@ class Terminal:
                     params.append(int(p))
                 else:
                     params.append(p)
+            self.ejecutar_comando_run(prop, params)
+        elif verb == 'add':
+            if len(tokens) < 2:
+                print(f"Uso: {verb} <Comando> [param1] [param2] ...")
+                return
+            prop = tokens[1]
 
-            # 6) Despachar subcomando
-            if verb == 'run':
-                self.ejecutar_comando_run(prop, params)
-            elif verb == 'add':
-                self.ejecutar_comando_add(prop, params)
+
+            raw_args = tokens[2:]
+
+            attr_index = None
+            for idx, arg in enumerate(raw_args):
+                if ':' in arg:
+                    attr_index = idx
+                    break
+
+            params_raw = raw_args[:attr_index] if attr_index is not None else raw_args
+            attrs_raw = raw_args[attr_index:] if attr_index is not None else []
+
+            # Validar orden: atributos después de parámetros
+            for a in attrs_raw:
+                if ':' not in a:
+                    print(f"Error al añadir proposición: parámetro '{a}' después de atributos no permitido")
+                    return
+            for p in params_raw:
+                if ':' in p:
+                    print(f"Error al añadir proposición: atributo '{p}' antes de parámetros no permitido")
+                    return
+
+            # Convertir parámetros
+            params = [int(p) if p.isdigit() else p for p in params_raw]
+            # Parsear atributos en diccionario
+            attrs = {}
+            for a in attrs_raw:
+                key, val = a.split(':', 1)
+                attrs[key] = int(val) if val.isdigit() else val
+
+            try:
+                self.ejecutar_comando_add(prop, params, attrs)
+            except ValueError as e:
+                print(f"Error al añadir proposición: {e}")
+            return
+
+                
         elif verb == 'help':
 
             if len(tokens) > 1:
 
-                if tokens[1].lower() == "accion":
+                sub = tokens[1].lower()
+                if sub == "accion":
                     nombre_accion = tokens[2] if len(tokens) > 2 else None
                     if nombre_accion:
                         accion = self.motor.get_accion(nombre_accion)
@@ -84,15 +158,12 @@ class Terminal:
                             print(accion.descripcion)
                         else:
                             print(f"No se encontró la acción '{nombre_accion}'.")
-                elif tokens[1].lower() == "acciones":
-                    acciones = self.motor.get_acciones()
-                    if acciones:
-                        print("Acciones disponibles:")
-                        for accion in acciones:
-                            print(f"  {accion.nombre}")
                     else:
-                        print("No hay acciones disponibles.")
-                elif tokens[1].lower() == "proposicion":
+                        info = COMANDOS['help']
+                        print(f"Uso:\n{info['uso']}")
+                        print(f"Descripcion: \n{info['descripcion']}")
+                
+                elif sub == "proposicion":
                     nombre_proposicion = tokens[2] if len(tokens) > 2 else None
                     if nombre_proposicion:
                         proposicion = self.motor.get_proposicion(nombre_proposicion)
@@ -101,20 +172,18 @@ class Terminal:
                             print(proposicion.descripcion)
                         else:
                             print(f"No se encontró la proposición '{nombre_proposicion}'.")
-                elif tokens[1].lower() == "proposiciones":
-                    proposiciones = self.motor.get_proposiciones()
-                    if proposiciones:
-                        print("Proposiciones disponibles:")
-                        for prop in proposiciones:
-                            print(f"  {prop.nombre}: {prop.descripcion}")
-                    else:
-                        print("No hay proposiciones disponibles.")
-                
-                        
+
+                elif sub in COMANDOS:
+                    info = COMANDOS[sub]
+                    print(f"Uso: {info['uso']}")
+                    print(info['descripcion'])
+                else:
+                    print(f"No se reconoce el elemento '{tokens[1]}'.")
+                       
             else:
                 print("Comandos disponibles:")
-                for cmd, desc in COMANDOS.items():
-                    print(f"  {cmd}: {desc}")
+                for cmd, info in COMANDOS.items():
+                    print(f"  {cmd}: {info['descripcion']}")
         elif verb == 'get':
             if len(tokens) < 2:
                 print("Uso: get <tipo> <nombre>")
@@ -156,8 +225,8 @@ class Terminal:
 
 
 
-    def ejecutar_comando_add(self, prop, params):
-        self.motor.add_proposicion(prop, params)
+    def ejecutar_comando_add(self, prop, params,atributos=None):
+        self.motor.add_proposicion(prop, params,atributos)
 
     def run(self):
         """
