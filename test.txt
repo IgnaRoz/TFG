@@ -22,6 +22,7 @@ Accion Test(U,L):
         P.fecha_devolucion += 1;
         DEL Usuario("usuario");
 
+
 //Inicializacion
 add Usuario(“nacho”){libros_Prestados=0};
 add Profesor(“nacho”); // Nacho es profesor, no tiene limite de libros

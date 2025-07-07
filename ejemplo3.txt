@@ -1,5 +1,5 @@
 from biblioteca import Biblioteca;
-
+from System import System;
 Prop Prestamos(Usuario,Libro){fecha_devolucion};
 Prop Usuario(Usuario){libros_Prestados};
 Prop Profesor(Usuario);
@@ -9,8 +9,14 @@ Prop Disponible(Libro);
 Accion PrestarLibro(U,L):
     Condiciones:
 
-        P = Prestamos(Biblioteca.getUsuario(),L);
+        P = Prestamos(_,_);
         Usuario(P.Usuario);
+        C = System.count(*P);
+        Mx= System.max(*P,"fecha_devolucion");
+        Mn= System.min(*P,"fecha_devolucion");
+        System.print("El numero de prestamos son: {0}",C);
+        System.print("El max prestamo es: {0}",Mx);
+        System.print("El min prestamo es: {0}",Mn);
     Consecuencias:
         Biblioteca.concederPrestamo(P.Usuario,P.Libro); 
         Biblioteca.print("fecha_devolucion");
