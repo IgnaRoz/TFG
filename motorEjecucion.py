@@ -14,7 +14,7 @@ from consecuencias import (
     ConsecuenciaModificacion,
 )
 from reglas import Regla
-from system import Output
+#from system import Output
 
 class LogColors:
     DEBUG = "\033[94m"
@@ -70,7 +70,7 @@ class MotorEjecucion:
         self.acciones: List[Regla] = []
         self.archivo = None
         #Incializar el motor
-        self.base.proposiciones["Output"] = Output()
+        #self.base.proposiciones["Output"] = Output()
 
     def get_regla(self, nombre: str) -> Regla:
         for regla in self.reglas:

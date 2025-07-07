@@ -4,7 +4,6 @@ import shlex
 
 COMANDOS = {
     'run': 'Ejecuta una acción con los parámetros dados.',
-    'new': 'Crea un nuevo individuo con los parámetros dados.',
     'add': 'Añade una proposición con los parámetros dados.',
     'load': 'Carga un archivo de configuración.',
     'exit': 'Sale del programa.',
@@ -54,7 +53,7 @@ class Terminal:
 
         # 5) Para run/new/add se esperan al menos un 'prop' y posibles parámetros
         
-        elif verb  in ('run', 'new', 'add'):
+        elif verb  in ('run', 'add'):
             if len(tokens) < 2:
                 print(f"Uso: {verb} <Comando> [param1] [param2] ...")
                 return
@@ -70,8 +69,6 @@ class Terminal:
             # 6) Despachar subcomando
             if verb == 'run':
                 self.ejecutar_comando_run(prop, params)
-            elif verb == 'new':
-                self.ejecutar_comando_new(prop, params)
             elif verb == 'add':
                 self.ejecutar_comando_add(prop, params)
         elif verb == 'help':
@@ -127,9 +124,9 @@ class Terminal:
             if tipo == 'proposicion':
                 proposicion = self.motor.get_proposicion(nombre)
                 if proposicion:
-                    print(f"Elementos de la proposicion '{nombre}':")
-                    for tupla in proposicion.tuplas:
-                        print(f"elmento  {tupla}")
+                    print(f"Elementos de la proposicion '{nombre}({', '.join(map(str, proposicion.parametros))})':")
+                    for elemento in proposicion.elementos:
+                        print(f"elemento  {elemento} con atributos{proposicion.elementos[elemento].atributos}")
                 else:
                     print(f"No se encontró la proposición '{nombre}'.")
             else:
@@ -152,13 +149,12 @@ class Terminal:
                 print("No hay proposiciones disponibles.")
 
         else:
-            print(f"Error: comando '{verb}' no reconocido. Usa 'run', 'new', 'add' o 'load'.")
+            print(f"Error: comando '{verb}' no reconocido. Usa 'run', 'add' o 'load'.")
 
     def ejecutar_comando_run(self, prop, params):
         self.motor.ejecutar_accion(prop, params)
 
-    def ejecutar_comando_new(self, prop, params):
-        self.motor.nuevo_individuo(prop, params)
+
 
     def ejecutar_comando_add(self, prop, params):
         self.motor.add_proposicion(prop, params)

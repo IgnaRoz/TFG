@@ -1,5 +1,5 @@
 from biblioteca import Biblioteca;
-
+from System import System;
 Prop Prestamos(Usuario,Libro){fecha_devolucion};
 Prop Usuario(Usuario){libros_Prestados};
 Prop Profesor(Usuario);
@@ -9,13 +9,14 @@ Prop Disponible(Libro);
 
 Accion Test(U,L):
     Condiciones:
-
+        System.print("hola {0}",U);
         P = Prestamos(U,_);
         C = Biblioteca.Count(*P);
-        Biblioteca.print("count");
-        Biblioteca.print(C);
+        System.print("El numero de prestamos es: {0}",C);
+        System.print("Estos son los prestamos: {0}",P);
+        System.print("Estos son los prestamos agregados: {0}",*P);
     Consecuencias:
-
+        System.print("Estos son los prestamos agregados: {0}",*P);
         Usuario("usuario"){libros_Prestados=0};
         Biblioteca.print("hola");
         P.fecha_devolucion += 1;
