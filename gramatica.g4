@@ -54,6 +54,13 @@ accion
       comentarioMultilineo?
       'Condiciones:' listaCondiciones
       'Consecuencias:' listaConsecuencias
+      contingencia*
+    ;
+contingencia
+    : ('Pre' | 'Post')? 'Contingencia' idName ':'
+      comentarioMultilineo?
+      'Condiciones:' listaCondiciones
+      'Consecuencias:' listaConsecuencias
     ;
 listaParams
     : idName (',' idName)*

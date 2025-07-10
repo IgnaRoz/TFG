@@ -225,13 +225,17 @@ class ConsecuenciaModificacion(Consecuencia):
         if self.objetivo.atributo not in contexto[self.objetivo.nombre].atributos:
             raise ValueError(f"No se encuentra el atributo {self.objetivo.atributo} en la variable objetivo {self.objetivo}")
 
-
+        variable_contexto=  contexto[self.objetivo.nombre]
+        #elemento = base.proposiciones[variable_contexto.nombre_prop].elementos[variable_contexto.tupla]
         if self.operacion == TipoOperacion.ASIGNACION:
-           contexto[self.objetivo.nombre].atributos[self.objetivo.atributo] = valor
+            variable_contexto.atributos[self.objetivo.atributo] = valor
+            #elemento.atributos[self.objetivo.atributo] = valor
         elif self.operacion == TipoOperacion.INCREMENTO:
-            contexto[self.objetivo.nombre].atributos[self.objetivo.atributo] += valor
+             variable_contexto.atributos[self.objetivo.atributo] += valor
+             #elemento.atributos[self.objetivo.atributo] += valor
         elif self.operacion == TipoOperacion.DECREMENTO:
-            contexto[self.objetivo.nombre].atributos[self.objetivo.atributo] -= valor
+             variable_contexto.atributos[self.objetivo.atributo] -= valor
+             #elemento.atributos[self.objetivo.atributo] -= valor
         return
         
 

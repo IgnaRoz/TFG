@@ -3,7 +3,7 @@ from itertools import product
 import logging
 from base import BaseConocimiento,Variable
 logger = logging.getLogger("LOG")
-from condiciones import Condicion, CondicionAsignacion
+from condiciones import Condicion, CondicionAsignacion, CondicionFuncion
 from consecuencias import Consecuencia, ConsecuenciaAsignacion
 
 
@@ -14,10 +14,16 @@ class Regla:
         self.condiciones = condiciones
         self.consecuencias: List[Consecuencia] = []
         self.descripcion = descripcion if descripcion else f"Proposición {nombre}: Sin descripción"
+        self.contingencias =[]
 
     def validar(self, valores: List[str], base: BaseConocimiento):
         #contexto = dict(zip(self.parametros, valores))
-        contexto = {param: [valor] for param, valor in zip(self.parametros, valores)}
+        contexto ={}
+        if isinstance(self,Contingencia): 
+            contexto = valores
+        else:
+
+            contexto = {param: [valor] for param, valor in zip(self.parametros, valores)}
         #contexto = {}
         #for param, valor in zip(self.parametros, valores):
         #    contexto[param] =valor
@@ -121,7 +127,24 @@ class Regla:
         return True , contexto
 
     def ejecutar(self, valores: List[str], base: BaseConocimiento):
+
+        #Antes de validar las condiciones se comprueba si hay contingencias precondiciones
+        for contingencia in self.contingencias:
+            if not isinstance(contingencia,Contingencia) or contingencia.precondicion != True:
+                #No es una contingencia de precondicion y se salta
+                continue
+            contingencia.ejecutar(valores,base)
+            
+
         boolean , contexto = self.validar(valores, base)
+        #Despues de validar las condiciones se comprueba si hay contingencias 
+        for contingencia in self.contingencias:
+            if not isinstance(contingencia,Contingencia) or contingencia.precondicion != False or contingencia.posconsecuencia != False:
+                #No es una contingencia de precondicion y se salta
+                continue
+            contingencia.ejecutar(contexto,base)
+
+
         indice = 1 #Para informar en el loger de la posicion de la consecuencia
         if boolean:
             logger.info(f"[Regla:{self.nombre}] Ejecutando consecuencia en {valores}")
@@ -190,3 +213,19 @@ class Regla:
 
                     c.ejecutar(contx, base)
             logger.info(f"[Regla:{self.nombre}] Consecuencias ejecutadas")
+
+
+        for contingencia in self.contingencias:
+            if not isinstance(contingencia,Contingencia) or contingencia.posconsecuencia != True:
+                #No es una contingencia de precondicion y se salta
+                continue
+            contingencia.ejecutar(contexto,base)
+
+
+class Contingencia(Regla):
+    def __init__(self, nombre: str, parametros: List[str], condiciones: List[Condicion], descripcion: str = None,precondicion: bool = False,posconsecuencia: bool = False):
+  
+        super().__init__(nombre, parametros, condiciones, descripcion)
+        self.precondicion = precondicion
+        self.posconsecuencia = posconsecuencia
+        

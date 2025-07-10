@@ -7,13 +7,15 @@ from base import (
     TipoComparacion,
     TipoOperacion,
 )
-from condiciones import CondicionSimple, CondicionComparacion, CondicionAsignacion
+from condiciones import CondicionSimple, CondicionComparacion, CondicionAsignacion, CondicionFuncion
 from consecuencias import (
     ConsecuenciaAsignacion,
     ConsecuenciaEliminacion,
     ConsecuenciaModificacion,
+    ConsecuenciaFuncion,
 )
-from reglas import Regla
+from reglas import Regla, Contingencia
+from func import func
 #from system import Output
 
 class LogColors:

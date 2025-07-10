@@ -74,6 +74,11 @@ class gramaticaVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramaticaParser#contingencia.
+    def visitContingencia(self, ctx:gramaticaParser.ContingenciaContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramaticaParser#listaParams.
     def visitListaParams(self, ctx:gramaticaParser.ListaParamsContext):
         return self.visitChildren(ctx)

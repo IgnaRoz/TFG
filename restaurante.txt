@@ -1,4 +1,4 @@
-from System import System;
+from system import System;
 
 Prop Cliente(Cliente){pedidos};
 Prop Empleado(Empleado);
@@ -18,15 +18,28 @@ Registra un nuevo pedido de un cliente
         Disponible(P);
         OR(
             Cl.pedidos < 3;
-            Chef(Cl); // Un chef puede pedir sin limite
+            Chef(Cl.Cliente); // Un chef puede pedir sin limite
         );
         NOT(Orden(C,P));
     Consecuencias:
         Orden(C,P){cantidad=Cnt};
         Cl.pedidos += 1;
         Pl.stock -= Cnt;
-
         System.print("Pedido {0} de {1} registrado",C,P);
+    Contingencia Chef:
+        Condiciones:
+            Cl.pedidos > 3;
+            Chef(Cl.Cliente); // Un chef puede pedir sin limite
+        Consecuencias:
+            System.print("{0} es un chef y no tiene limite de pedidos",Cl);
+
+    Post Contingencia Plato_Sin_Stock:
+        Condiciones:
+            Pl.stock <= 0;
+        Consecuencias:
+            DEL Disponible(Pl.Plato);
+            System.print("Ya no esta disponible el plato {0}",Pl.Plato);
+
 
 Accion CancelarPedido(C,P):
     Condiciones:
@@ -82,6 +95,8 @@ Accion ResumenPedidos():
 //Inicializacion
 add Cliente("ana"){pedidos=0};
 add Cliente("carlos"){pedidos=0};
+add Cliente("luis"){pedidos=4};
+
 add Empleado("luis");
 add Chef("luis");
 add Plato("paella"){precio=12,stock=10};
@@ -91,6 +106,8 @@ add Disponible("pizza");
 add Plato("ensalada"){precio=7,stock=8};
 add Disponible("ensalada");
 
+
+Run TomarPedido("luis","paella",2);
 Run TomarPedido("ana","paella",2);
 Run TomarPedido("carlos","pizza",1);
 Run ResumenPedidos();

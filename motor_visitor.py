@@ -18,7 +18,7 @@ from consecuencias import (
     ConsecuenciaModificacion,
     ConsecuenciaFuncion
 )
-from reglas import Regla
+from reglas import Regla, Contingencia
 
 
 def _texto_string(token: str) -> str:
@@ -350,6 +350,16 @@ class MotorVisitor(gramaticaVisitor):
             logger.warning(f"[Acción:{nombre}] No se definieron consecuencias, acción ignorada")
             return None
         regla.consecuencias = consecuencias
+
+        #obtenter todas las contingencias
+        contingencias = []
+
+        for c in ctx.contingencia():
+            cont = self.visitContingencia(c)
+            if cont:
+                contingencias.append(cont)
+        regla.contingencias = contingencias
+
         try:
             self.motor.add_regla(regla, accion=True)
             logger.info(f"[Acción:{nombre}] Agregada con {len(condiciones)} condiciones y {len(consecuencias)} consecuencias")
@@ -358,6 +368,37 @@ class MotorVisitor(gramaticaVisitor):
         return None
 
 
+    def visitContingencia(self, ctx):
+        #comprobar si hay Pre o Post
+
+        nombre = ctx.idName().getText()
+        descripcion = None
+        if ctx.comentarioMultilineo():
+            descripcion = ctx.comentarioMultilineo().getText()
+
+        condiciones = []
+        if ctx.listaCondiciones():
+            condiciones = self.visitListaCondiciones(ctx.listaCondiciones())
+        if not condiciones:
+            #Modificarr el warning, no debe permitir 0 condiciones,pero quizas debe elevar el error
+            raise ValueError(
+                f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
+            )
+        if ctx.getChild(0).getText() == "Post":
+            contingencia = Contingencia(nombre, [], condiciones,descripcion,posconsecuencia=True)
+        elif ctx.getChild(0).getText() == "Pre":
+            contingencia = Contingencia(nombre, [], condiciones,descripcion, precondicion =True)
+        else:
+            contingencia = Contingencia(nombre, [], condiciones,descripcion)
+        consecuencias = []
+        if ctx.listaConsecuencias():
+            consecuencias = self.visitListaConsecuencias(ctx.listaConsecuencias())  
+        if not consecuencias:
+            logger.warning(f"[Acción:{nombre}] No se definieron consecuencias, acción ignorada")
+            return None
+        contingencia.consecuencias = consecuencias
+        return contingencia
+ 
     def visitListaCondiciones(self, ctx):
         condiciones = []
         for c in ctx.condicion():

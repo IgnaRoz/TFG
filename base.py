@@ -34,7 +34,7 @@ class Variable():
         self.atributo = atributo
         self.agregacion = agregacion
 
-class Individuos:
+class Individuos:#Borrar, no es necesario
     def __init__(self):
         self.individuos: Dict[str, Dict[str, Union[str, int, bool]]] = {}
 
@@ -123,10 +123,11 @@ class Categoria:
 
 class BaseConocimiento:
     def __init__(self):
-        self.individuos = Individuos()
-        self.categorias: Dict[str, Categoria] = {}
+        self.individuos = Individuos()#Borrar
+        self.categorias: Dict[str, Categoria] = {}#Borrar
         self.proposiciones: Dict[str, Proposicion] = {}
 
+    #Borrar
     def crear_categoria(self, nombre: str, esquema: Dict[str, type]):
         if nombre in self.categorias:
             raise ValueError(f"La categoría '{nombre}' ya existe")
@@ -138,6 +139,7 @@ class BaseConocimiento:
             raise ValueError(f"La proposición '{nombre}' ya existe")
         self.proposiciones[nombre] = Proposicion(nombre, parametros,descripcion,atributos=atributos)#Añadir luego parametros y atributos
 
+    #Borrar
     def asignar_individuo_a_categoria(
         self, id_: str, categoria: str, atributos: Dict[str, Union[str, int, bool]]
     ):
