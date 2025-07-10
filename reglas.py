@@ -215,11 +215,13 @@ class Regla:
             logger.info(f"[Regla:{self.nombre}] Consecuencias ejecutadas")
 
 
-        for contingencia in self.contingencias:
-            if not isinstance(contingencia,Contingencia) or contingencia.posconsecuencia != True:
-                #No es una contingencia de precondicion y se salta
-                continue
-            contingencia.ejecutar(contexto,base)
+            for contingencia in self.contingencias:
+                if not isinstance(contingencia,Contingencia) or contingencia.posconsecuencia != True:
+                    #No es una contingencia de precondicion y se salta
+                    continue
+                contingencia.ejecutar(contexto,base)
+            return True #Si la regla es validad correctamente y ejecuta las consecuencias, la regla devuelve True
+        return False #De lo contrario devuelve False
 
 
 class Contingencia(Regla):

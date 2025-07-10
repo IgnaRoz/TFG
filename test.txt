@@ -1,5 +1,5 @@
 from biblioteca import Biblioteca;
-from System import System;
+from system import System;
 Prop Prestamos(Usuario,Libro){fecha_devolucion};
 Prop Usuario(Usuario){libros_Prestados};
 Prop Profesor(Usuario);
@@ -9,6 +9,7 @@ Prop Disponible(Libro);
 
 Accion Test(U,L):
     Condiciones:
+        rule Imprimir(U);
         System.print("hola {0}",U);
         P = Prestamos(U,_);
         C = Biblioteca.Count(*P);
@@ -21,7 +22,15 @@ Accion Test(U,L):
         Biblioteca.print("hola");
         P.fecha_devolucion += 1;
         DEL Usuario("usuario");
+        rule Imprimir(U);
 
+
+
+Rule Imprimir(U):
+    Condiciones:
+        System.print("Imprimir:{0}",U);
+    Consecuencias:
+        System.print("fin Imprimir");
 
 //Inicializacion
 add Usuario(“nacho”){libros_Prestados=0};

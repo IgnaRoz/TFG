@@ -11,12 +11,13 @@ from gramaticaVisitor import gramaticaVisitor
 from gramaticaParser import gramaticaParser
 from motorEjecucion import MotorEjecucion, logger
 from base import TipoComparacion, TipoOperacion,Variable
-from condiciones import CondicionSimple, CondicionComparacion, CondicionLogica, CondicionNegacion, CondicionAsignacion, CondicionFuncion
+from condiciones import CondicionSimple, CondicionComparacion, CondicionLogica, CondicionNegacion, CondicionAsignacion, CondicionFuncion, CondicionRule
 from consecuencias import (
     ConsecuenciaAsignacion,
     ConsecuenciaEliminacion,
     ConsecuenciaModificacion,
-    ConsecuenciaFuncion
+    ConsecuenciaFuncion,
+    ConsecuenciaRule
 )
 from reglas import Regla, Contingencia
 
@@ -324,6 +325,8 @@ class MotorVisitor(gramaticaVisitor):
             raise ValueError(
                 f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
             )
+        
+            
         descripcion = None
         if ctx.comentarioMultilineo():
             descripcion = ctx.comentarioMultilineo().getText()
@@ -359,13 +362,24 @@ class MotorVisitor(gramaticaVisitor):
             if cont:
                 contingencias.append(cont)
         regla.contingencias = contingencias
-
+        accion = ctx.getChild(0).getText() =="Accion"
         try:
-            self.motor.add_regla(regla, accion=True)
+            self.motor.add_regla(regla, accion=accion)
             logger.info(f"[Acción:{nombre}] Agregada con {len(condiciones)} condiciones y {len(consecuencias)} consecuencias")
         except Exception as e:
             logger.error(str(e))
         return None
+
+
+    def visitCondicionRule(self, ctx):
+        nombre_regla = ctx.idName().getText()  
+        lista_parametros = self.visitListaArgsPredicado(ctx.listaArgsPredicado()) if ctx.listaArgsPredicado() else []
+        return CondicionRule(nombre_regla,lista_parametros,self.motor)
+
+    def visitConsecuenciaRule(self, ctx):
+        nombre_regla = ctx.idName().getText()  
+        lista_parametros = self.visitListaArgsPredicado(ctx.listaArgsPredicado()) if ctx.listaArgsPredicado() else []
+        return ConsecuenciaRule(nombre_regla,lista_parametros,self.motor)
 
 
     def visitContingencia(self, ctx):
@@ -422,6 +436,8 @@ class MotorVisitor(gramaticaVisitor):
             condicion = self.visitAsignacionVariable(ctx.asignacionVariable())
         elif ctx.condicionFuncion():
             condicion = self.visitCondicionFuncion(ctx.condicionFuncion())
+        elif ctx.condicionRule():
+            condicion = self.visitCondicionRule(ctx.condicionRule())
 
         return condicion
     
@@ -636,7 +652,8 @@ class MotorVisitor(gramaticaVisitor):
         elif ctx.funcion():
             funcion = self.visitFuncion(ctx.funcion())
             consecuencia = ConsecuenciaFuncion(funcion.args,funcion)
-            
+        elif ctx.consecuenciaRule():
+            consecuencia = self.visitConsecuenciaRule(ctx.consecuenciaRule())
         return consecuencia
     def visitOperandoIzq(self, ctx):
 

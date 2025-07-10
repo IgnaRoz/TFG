@@ -94,6 +94,11 @@ class gramaticaVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramaticaParser#condicionRule.
+    def visitCondicionRule(self, ctx:gramaticaParser.CondicionRuleContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramaticaParser#condicionFuncion.
     def visitCondicionFuncion(self, ctx:gramaticaParser.CondicionFuncionContext):
         return self.visitChildren(ctx)
@@ -166,6 +171,11 @@ class gramaticaVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by gramaticaParser#consecuencia.
     def visitConsecuencia(self, ctx:gramaticaParser.ConsecuenciaContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by gramaticaParser#consecuenciaRule.
+    def visitConsecuenciaRule(self, ctx:gramaticaParser.ConsecuenciaRuleContext):
         return self.visitChildren(ctx)
 
 

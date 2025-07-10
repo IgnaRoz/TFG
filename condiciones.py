@@ -4,6 +4,7 @@ from typing import Dict, List
 import logging
 from base import BaseConocimiento, OPERADORES, TipoComparacion, ElementoProposicion, Variable
 from func import func
+#from motorEjecucion import motor
 
 logger = logging.getLogger("LOG")
 
@@ -352,5 +353,59 @@ class CondicionAsignacion(Condicion):
         else:
             raise ValueError(f"El valor de la asignacion no es un predicado o una funcion")
 
-            
-        
+
+class CondicionRule(Condicion):
+    def __init__(self,  nombre_regla: str,variables,motor):
+        super().__init__(variables)
+        self.nombre_regla = nombre_regla
+        self.motor = motor
+
+    def validar(self, contexto: Dict, base: BaseConocimiento) -> bool:
+
+        parametros = []
+
+        for variable in self.variables:
+
+
+            if isinstance(variable,Variable):
+                if variable.nombre not in contexto:
+                    raise ValueError(f"La varaible {variable.nobmre} no esta en el contexto")
+                if variable.atributo is not None:
+                    if variable.atributo not in contexto[variable.nombre].atributos:
+                        raise ValueError(f"La variable {variable.nobmre} no tiene el atributo {variable.atributo}")
+                    parametros.append(contexto[variable.nombre].atributos[variable.atributo])
+                else:
+                    parametros.append(contexto[variable.nombre])
+            elif isinstance(variable,func) :
+                #Se podria refactorizar
+                parametros_funcion = []
+                args = variable.args or []
+                for arg in args:
+                    if isinstance(arg,Variable):
+                        if arg.nombre not in contexto: 
+                           raise ValueError(f"No se ha econtrado la variable {arg} en el contexto")
+                        if arg.atributo is not None : 
+                            if arg.atributo not  in contexto[arg.nombre].atributo:
+                                raise ValueError(f"No se ha econtrado el atributo {arg.atributo} en la variable {arg}")
+                            parametros_funcion.append(contexto[arg.nombre].atributos[arg.atributo])
+                        else:
+                            parametros_funcion.append(contexto[arg.nombre])
+                    else:
+                        parametros_funcion.append(arg)
+                parametros.append(variable.run(*args))
+            else:
+                #Se considera que es un tipo basico
+                parametros.append(variable)
+                
+
+        resultado = False
+        regla = None
+        try: 
+
+            regla = self.motor.get_regla(self.nombre_regla)
+            return regla.ejecutar(parametros, self.motor.base)
+        except KeyError:
+            raise ValueError(f"No se ha encontrado la regla {self.nombre_regla}")
+
+
+        return resultado

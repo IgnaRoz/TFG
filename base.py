@@ -2,6 +2,7 @@ import logging
 from typing import Dict, Set, Tuple, List, Union
 from enum import Enum
 import operator
+#from motorEjecucion import motor
 
 
 class TipoComparacion(Enum):

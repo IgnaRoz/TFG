@@ -50,7 +50,7 @@ listaPropiedades
 
 
 accion
-    : 'Accion' idName '(' listaParams? ')' ':'
+    : ('Accion'|'Rule') idName '(' listaParams? ')' ':'
       comentarioMultilineo?
       'Condiciones:' listaCondiciones
       'Consecuencias:' listaConsecuencias
@@ -76,6 +76,11 @@ condicion
     | operacionLogica
     | asignacionVariable
     | condicionFuncion
+    | condicionRule 
+    ;
+
+condicionRule
+    : 'rule' idName '(' listaArgsPredicado ')'
     ;
 condicionFuncion
     : funcion
@@ -158,6 +163,10 @@ consecuencia
     | funcion
     | borrado
     | predicado bloqueValores?
+    | consecuenciaRule
+    ;
+consecuenciaRule
+    : 'rule' idName '(' listaArgsPredicado ')'
     ;
 
 asignacion

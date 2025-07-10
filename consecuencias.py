@@ -283,3 +283,23 @@ class ConsecuenciaModificacion(Consecuencia):
             indiv[self.atributo] += valor_real
         elif self.operacion == TipoOperacion.DECREMENTO:
             indiv[self.atributo] -= valor_real
+
+
+class ConsecuenciaRule(Consecuencia):
+    def __init__(self, nombre_regla: str,  variables: List[str],motor):
+        super().__init__(variables)
+        self.nombre_regla = nombre_regla
+        self.motor = motor
+
+
+    def ejecutar(self, contexto: Dict[str, str], base: BaseConocimiento):
+
+        parametros = []
+        parametros = _sustituir_parametros(contexto,self.variables)
+
+        tupla = tuple(parametros)
+        try: 
+            regla = self.motor.get_regla(self.nombre_regla)
+            regla.ejecutar(tupla, self.motor.base)
+        except KeyError:
+            raise ValueError(f"No se ha encontrado la regla {self.nombre_regla}")
