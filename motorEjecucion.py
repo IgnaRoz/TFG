@@ -158,12 +158,12 @@ class MotorEjecucion:
     def crear_categoria(self, nombre: str, esquema: dict):
         self.base.crear_categoria(nombre, esquema)
 
-    def crear_proposicion(self, nombre: str, parametros:List[str],descripcion: str = None, atributos = None,padre=None):
+    def crear_proposicion(self, nombre: str, parametros:List[str],descripcion: str = None, atributos = None,padre=None,atributos_defecto = None):
         if padre:
             if padre not in self.base.proposiciones:
                 raise ValueError(f"No se ha econtrado la proposicion padre {padre} para la proposicion {nombre}")
             padre = self.base.proposiciones[padre]
-        self.base.crear_proposicion(nombre, parametros,descripcion,atributos=atributos,padre=padre)
+        self.base.crear_proposicion(nombre, parametros,descripcion,atributos=atributos,padre=padre,atributos_defecto=atributos_defecto)
 
     def nuevo_individuo(self, nombre: str, args: List):
         if nombre not in self.base.categorias:

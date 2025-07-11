@@ -50,7 +50,7 @@ class Individuos:#Borrar, no es necesario
 
 
 class Proposicion:
-    def __init__(self, nombre: str, parametros:List[str],descripcion: str = None,atributos = None ,padre = None):#Hay que incluir el nombre de los parametros
+    def __init__(self, nombre: str, parametros:List[str],descripcion: str = None,atributos = None ,padre = None,atributos_defecto = None):#Hay que incluir el nombre de los parametros
         self.nombre = nombre
         self.n = len(parametros)
         self.padre = padre
@@ -61,7 +61,10 @@ class Proposicion:
             self.atributos = atributos
         else:
             self.atributos = []
-        
+        if atributos_defecto:
+            self.atributos_defecto =atributos_defecto
+        else:
+            self.atributos_defecto ={}
 
 
         p = padre
@@ -74,7 +77,13 @@ class Proposicion:
                     self.atributos.append(atributo)
                 else:
                     raise ValueError(f"El atributo {atributo} ya esta asignado mediante herencia por {p.nombre}")
-                p = p.padre
+                
+            for atributo,valor in p.atributos_defecto.items():
+                #Si el padre tiene un atributo por defecto que el hijo no tiene, entonces se hereda el valor
+                if atributo not in self.atributos_defecto:
+                    self.atributos_defecto[atributo] = valor
+                #Si atributo por defecto del padre esta ya añadido como atributo por defecto, no se sustituye. Prevalece el de menor jerarquia
+            p = p.padre
         
     def add(self, tupla: Tuple[str, ...],atributos =None):
         if len(tupla) != self.n :
@@ -85,10 +94,10 @@ class Proposicion:
         
         atributos = {} if not atributos else atributos
         
-        #vamos a exigir todos los atributos
+        #vamos a exigir todos los atributos, a no ser que sean atributos por defectos
         for nombre_atributo in self.atributos:
             
-            if not nombre_atributo in atributos.keys():
+            if not nombre_atributo in self.atributos_defecto and not nombre_atributo in atributos.keys() :
                 raise ValueError(f"La proposicion{self.nombre} necesita el atributo {nombre_atributo}")
 
         #Tambien vamos a exigir es que no se añadan atributos nuevos
@@ -98,6 +107,9 @@ class Proposicion:
     
         for i,parametro in enumerate(self.parametros):
             atributos[parametro] = tupla[i]
+        for atributo,valor in self.atributos_defecto.items():
+            if atributo not in atributos:
+                atributos[atributo] = valor
 
         elemento = ElementoProposicion(self.nombre,self, tupla,atributos)
         self.elementos[tupla] = elemento  
@@ -106,8 +118,8 @@ class Proposicion:
         padre = self.padre
         while padre:
             padre.elementos[tupla] = elemento
-            padre = padre.padre
             logging.getLogger("LOG").debug(f"[{padre.nombre}] Added tuple {elemento.tupla} with attributes {elemento.atributos}")
+            padre = padre.padre
 
         #self.tuplas.add(tupla)
         return elemento
@@ -169,10 +181,10 @@ class BaseConocimiento:
         self.categorias[nombre] = Categoria(nombre, esquema)
         self.proposiciones[nombre] = Proposicion(nombre, 1)
 
-    def crear_proposicion(self, nombre: str, parametros: List[str],descripcion: str = None,atributos:Dict =None,padre=None):
+    def crear_proposicion(self, nombre: str, parametros: List[str],descripcion: str = None,atributos:Dict =None,padre=None,atributos_defecto = None):
         if nombre in self.proposiciones:
             raise ValueError(f"La proposición '{nombre}' ya existe")
-        self.proposiciones[nombre] = Proposicion(nombre, parametros,descripcion,atributos=atributos,padre= padre)#Añadir luego parametros y atributos
+        self.proposiciones[nombre] = Proposicion(nombre, parametros,descripcion,atributos=atributos,padre= padre,atributos_defecto=atributos_defecto)#Añadir luego parametros y atributos
 
     #Borrar
     def asignar_individuo_a_categoria(

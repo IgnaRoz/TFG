@@ -45,9 +45,12 @@ listaIdentificadores
     : idName (',' idName)*
     ;
 listaPropiedades
-    : idName (',' idName)*           
+    : propiedad(',' propiedad)*
+       
     ;
-
+propiedad
+    : idName ('=' valor)?
+    ;
 
 accion
     : ('Accion'|'Rule') idName '(' listaParams? ')' ':'

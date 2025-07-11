@@ -69,6 +69,11 @@ class gramaticaVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by gramaticaParser#propiedad.
+    def visitPropiedad(self, ctx:gramaticaParser.PropiedadContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by gramaticaParser#accion.
     def visitAccion(self, ctx:gramaticaParser.AccionContext):
         return self.visitChildren(ctx)

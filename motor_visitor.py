@@ -196,13 +196,14 @@ class MotorVisitor(gramaticaVisitor):
 
 
         atributos = {}
+        atributos_defecto = {}
         padre = ctx.idName(1).getText() if ctx.idName(1) else None 
         if ctx.bloquePropiedades():
-            atributos = self.visit(ctx.bloquePropiedades())
+            atributos,atributos_defecto = self.visitBloquePropiedades(ctx.bloquePropiedades())
         try:
             if descripcion:
-                self.motor.crear_proposicion(nombre,lista_parametros, descripcion=descripcion,atributos=atributos,padre=padre)
-            else: self.motor.crear_proposicion(nombre, lista_parametros,atributos=atributos,padre=padre)
+                self.motor.crear_proposicion(nombre,lista_parametros, descripcion=descripcion,atributos=atributos,padre=padre,atributos_defecto=atributos_defecto)
+            else: self.motor.crear_proposicion(nombre, lista_parametros,atributos=atributos,padre=padre,atributos_defecto=atributos_defecto)
         except Exception as e:
             logger.error(str(e))
         return None
@@ -213,7 +214,7 @@ class MotorVisitor(gramaticaVisitor):
                 f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
             )
         if ctx.listaPropiedades():
-            return self.visit(ctx.listaPropiedades())
+            return self.visitListaPropiedades(ctx.listaPropiedades())
         else:
             return []
         
@@ -223,11 +224,21 @@ class MotorVisitor(gramaticaVisitor):
                 f"Error de sintaxis en '{ctx.getText()}' en {ctx.start.line}:{ctx.start.column}"
             )
         atributos =[]
-        for atributo in ctx.idName():
-            atributos.append(atributo.getText())
-        return atributos
+        atributos_defecto = {}
+        for propiedad in ctx.propiedad():
+            atributo,valor = self.visitPropiedad(propiedad)
+            atributos.append(atributo)
+            if valor is not None:
+                atributos_defecto[atributo] = valor
 
+        #for atributo in ctx.idName():
+        #    atributos.append(atributo.getText())
+        return atributos,atributos_defecto
 
+    def visitPropiedad(self, ctx):
+        atributo = ctx.idName().getText()
+        valor = self.visitValor(ctx.valor()) if ctx.valor() else None
+        return atributo,valor
 
     def visitInicializacion(self, ctx: gramaticaParser.InicializacionContext):
         modo = ctx.getChild(0).getText()
