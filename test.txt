@@ -2,7 +2,7 @@ from biblioteca import Biblioteca;
 from system import System;
 Prop Prestamos(Usuario,Libro){fecha_devolucion};
 Prop Usuario(Usuario){libros_Prestados};
-Prop Profesor(Usuario);
+Prop Profesor(Usuario):Usuario{materia};
 Prop Libro(Libro);
 Prop Disponible(Libro);
 
@@ -24,8 +24,13 @@ Accion Test(U,L):
         DEL Usuario("usuario");
         rule Imprimir(U);
 
-
-
+Accion Herencia(U):
+    Condiciones:
+        Profesor(U);
+        Usuario(U);
+    Consecuencias:
+        System.print("{0} es un profesor, pero tambien es un Usuario",U);
+        DEL Profesor(U);
 Rule Imprimir(U):
     Condiciones:
         System.print("Imprimir:{0}",U);
@@ -33,8 +38,8 @@ Rule Imprimir(U):
         System.print("fin Imprimir");
 
 //Inicializacion
-add Usuario(“nacho”){libros_Prestados=0};
-add Profesor(“nacho”); // Nacho es profesor, no tiene limite de libros
+
+add Profesor(“nacho”){libros_Prestados=0,materia="Programacion"}; // Nacho es profesor, no tiene limite de libros
 add Usuario(“juan”){libros_Prestados=0};
 add Libro(“El señor de los anillos”);
 //add Libro(“El señor de los anillos”);
@@ -61,3 +66,4 @@ add Prestamos("nacho",“Dune”){fecha_devolucion=1};
 
 //Test
 Run Test(“nacho”, “El señor de los anillos”);
+Run Herencia("nacho");

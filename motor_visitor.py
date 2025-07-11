@@ -169,6 +169,7 @@ class MotorVisitor(gramaticaVisitor):
             logger.error(str(e))
         return None
 
+    #Se puede borrar
     def visitDeclCategoria2(self, ctx: gramaticaParser.DeclCategoriaContext):
         nombre = ctx.idName().getText()
         esquema = {}
@@ -182,7 +183,7 @@ class MotorVisitor(gramaticaVisitor):
         return None
 
     def visitDeclProposicion(self, ctx: gramaticaParser.DeclProposicionContext):
-        nombre = ctx.idName().getText()
+        nombre = ctx.idName(0).getText()
         lista_parametros = []
         descripcion = None
         #comprobamos si en el contexto del padre hay un comentario simple
@@ -195,12 +196,13 @@ class MotorVisitor(gramaticaVisitor):
 
 
         atributos = {}
+        padre = ctx.idName(1).getText() if ctx.idName(1) else None 
         if ctx.bloquePropiedades():
             atributos = self.visit(ctx.bloquePropiedades())
         try:
             if descripcion:
-                self.motor.crear_proposicion(nombre,lista_parametros, descripcion=descripcion,atributos=atributos)
-            else: self.motor.crear_proposicion(nombre, lista_parametros,atributos=atributos)
+                self.motor.crear_proposicion(nombre,lista_parametros, descripcion=descripcion,atributos=atributos,padre=padre)
+            else: self.motor.crear_proposicion(nombre, lista_parametros,atributos=atributos,padre=padre)
         except Exception as e:
             logger.error(str(e))
         return None

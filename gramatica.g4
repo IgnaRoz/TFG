@@ -36,7 +36,7 @@ tipoBasico
     ;
 
 declProposicion
-    : 'Prop' idName '(' listaIdentificadores? ')' bloquePropiedades? 
+    : 'Prop' idName '(' listaIdentificadores? ')' (':'idName)?bloquePropiedades? 
     ;
 bloquePropiedades
     : '{' listaPropiedades? '}'            

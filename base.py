@@ -50,9 +50,10 @@ class Individuos:#Borrar, no es necesario
 
 
 class Proposicion:
-    def __init__(self, nombre: str, parametros:List[str],descripcion: str = None,atributos = None ):#Hay que incluir el nombre de los parametros
+    def __init__(self, nombre: str, parametros:List[str],descripcion: str = None,atributos = None ,padre = None):#Hay que incluir el nombre de los parametros
         self.nombre = nombre
         self.n = len(parametros)
+        self.padre = padre
         self.parametros = parametros
         self.elementos = {}
         self.descripcion = descripcion if descripcion else f"Sin descripción"
@@ -60,6 +61,20 @@ class Proposicion:
             self.atributos = atributos
         else:
             self.atributos = []
+        
+
+
+        p = padre
+        while p:#mientras exista un padre, se le va añadiendo mas atributos heredados
+            #if not p.atributos:
+            #    p = p.padre
+            #    continue
+            for atributo in p.atributos:
+                if atributo not in self.atributos:
+                    self.atributos.append(atributo)
+                else:
+                    raise ValueError(f"El atributo {atributo} ya esta asignado mediante herencia por {p.nombre}")
+                p = p.padre
         
     def add(self, tupla: Tuple[str, ...],atributos =None):
         if len(tupla) != self.n :
@@ -84,24 +99,43 @@ class Proposicion:
         for i,parametro in enumerate(self.parametros):
             atributos[parametro] = tupla[i]
 
-        elemento = ElementoProposicion(self.nombre, tupla,atributos)
+        elemento = ElementoProposicion(self.nombre,self, tupla,atributos)
         self.elementos[tupla] = elemento  
 
+        #Un elemento con herenecia tambien pertenece a la proposicion padre.
+        padre = self.padre
+        while padre:
+            padre.elementos[tupla] = elemento
+            padre = padre.padre
+            logging.getLogger("LOG").debug(f"[{padre.nombre}] Added tuple {elemento.tupla} with attributes {elemento.atributos}")
+
         #self.tuplas.add(tupla)
-        logging.getLogger("LOG").debug(f"[{self.nombre}] Added tuple {elemento.tupla} with attributes {elemento.atributos}")
         return elemento
 
     def eliminar(self, tupla: Tuple[str, ...]):
-        if tupla not in self.elementos.keys():
+
+        #Cuando se elimina una proposicion y esta tiene herencia, se elimina de todas empezando por la original
+        if not self.existe(tupla):
             raise ValueError(f"La tupla {tupla} no existe en {self.nombre}")
-        self.elementos.pop(tupla)
-        logging.getLogger("LOG").debug(f"[{self.nombre}] Eliminada tupla {tupla}")
+        #Eliminacion en cascada desde el origen
+        padre = self.elementos[tupla].proposicion
+        while padre:
+            padre.elementos.pop(tupla)
+            logging.getLogger("LOG").debug(f"[{padre.nombre}] Eliminada tupla {tupla}")
+            padre = padre.padre
+        
+
+        #if tupla not in self.elementos.keys():
+        #    raise ValueError(f"La tupla {tupla} no existe en {self.nombre}")
+        #self.elementos.pop(tupla)
+        #logging.getLogger("LOG").debug(f"[{self.nombre}] Eliminada tupla {tupla}")
 
     def existe(self, tupla: Tuple[str, ...]) -> bool:
         return tupla in self.elementos
 class ElementoProposicion:
-    def __init__(self, nombre_prop: str, tupla,atributos):
+    def __init__(self, nombre_prop: str,proposicion:Proposicion, tupla,atributos):
         self.nombre_prop = nombre_prop
+        self.proposicion = proposicion
         self.tupla = tupla
         self.atributos = atributos 
     def __str__(self):
@@ -135,10 +169,10 @@ class BaseConocimiento:
         self.categorias[nombre] = Categoria(nombre, esquema)
         self.proposiciones[nombre] = Proposicion(nombre, 1)
 
-    def crear_proposicion(self, nombre: str, parametros: List[str],descripcion: str = None,atributos:Dict =None):
+    def crear_proposicion(self, nombre: str, parametros: List[str],descripcion: str = None,atributos:Dict =None,padre=None):
         if nombre in self.proposiciones:
             raise ValueError(f"La proposición '{nombre}' ya existe")
-        self.proposiciones[nombre] = Proposicion(nombre, parametros,descripcion,atributos=atributos)#Añadir luego parametros y atributos
+        self.proposiciones[nombre] = Proposicion(nombre, parametros,descripcion,atributos=atributos,padre= padre)#Añadir luego parametros y atributos
 
     #Borrar
     def asignar_individuo_a_categoria(
