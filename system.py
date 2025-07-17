@@ -14,7 +14,33 @@ class System(Registry):
         ) from None
         print(mensaje)
         return True
+    @export
+    def Input(mensaje: str, mensaje_error: str, tipo):
+        """Solicita un valor al usuario y lo valida por tipo.
 
+        *tipo* puede ser ``"string"``, ``"int"`` o ``"bool"``/``"true or false"``.
+        Si la entrada no es válida, se muestra ``mensaje_error`` y se pide de nuevo.
+        Devuelve el valor convertido al tipo correspondiente.
+        """
+        while True:
+            valor = input(mensaje)
+            if tipo in (str, "string"):
+                return valor
+            if tipo in (int, "int"):
+                try:
+                    return int(valor)
+                except ValueError:
+                    print(mensaje_error)
+                    continue
+            if tipo in (bool, "bool"):
+                v = valor.strip().lower()
+                if v in ("true", "false"):
+                    return v == "true"
+                print(mensaje_error)
+                continue
+            else:
+                print(mensaje_error)
+        return valor
     @export
     def count(lista):
         """Devuelve la cantidad de elementos de *lista*.

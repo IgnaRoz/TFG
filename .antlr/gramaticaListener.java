@@ -127,6 +127,16 @@ public interface gramaticaListener extends ParseTreeListener {
 	 */
 	void exitListaPropiedades(gramaticaParser.ListaPropiedadesContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link gramaticaParser#propiedad}.
+	 * @param ctx the parse tree
+	 */
+	void enterPropiedad(gramaticaParser.PropiedadContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link gramaticaParser#propiedad}.
+	 * @param ctx the parse tree
+	 */
+	void exitPropiedad(gramaticaParser.PropiedadContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link gramaticaParser#accion}.
 	 * @param ctx the parse tree
 	 */
@@ -136,6 +146,16 @@ public interface gramaticaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitAccion(gramaticaParser.AccionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link gramaticaParser#contingencia}.
+	 * @param ctx the parse tree
+	 */
+	void enterContingencia(gramaticaParser.ContingenciaContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link gramaticaParser#contingencia}.
+	 * @param ctx the parse tree
+	 */
+	void exitContingencia(gramaticaParser.ContingenciaContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link gramaticaParser#listaParams}.
 	 * @param ctx the parse tree
@@ -166,6 +186,16 @@ public interface gramaticaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitCondicion(gramaticaParser.CondicionContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link gramaticaParser#condicionRule}.
+	 * @param ctx the parse tree
+	 */
+	void enterCondicionRule(gramaticaParser.CondicionRuleContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link gramaticaParser#condicionRule}.
+	 * @param ctx the parse tree
+	 */
+	void exitCondicionRule(gramaticaParser.CondicionRuleContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link gramaticaParser#condicionFuncion}.
 	 * @param ctx the parse tree
@@ -322,6 +352,16 @@ public interface gramaticaListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitConsecuencia(gramaticaParser.ConsecuenciaContext ctx);
+	/**
+	 * Enter a parse tree produced by {@link gramaticaParser#consecuenciaRule}.
+	 * @param ctx the parse tree
+	 */
+	void enterConsecuenciaRule(gramaticaParser.ConsecuenciaRuleContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link gramaticaParser#consecuenciaRule}.
+	 * @param ctx the parse tree
+	 */
+	void exitConsecuenciaRule(gramaticaParser.ConsecuenciaRuleContext ctx);
 	/**
 	 * Enter a parse tree produced by {@link gramaticaParser#asignacion}.
 	 * @param ctx the parse tree

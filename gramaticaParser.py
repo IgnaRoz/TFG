@@ -196,7 +196,7 @@ class gramaticaParser ( Parser ):
 
     literalNames = [ "<INVALID>", "'from'", "'import'", "';'", "'Categoria'", 
                      "'('", "')'", "','", "':'", "'int'", "'str'", "'bool'", 
-                     "'Prop'", "'{'", "'}'", "'Accion'", "'Rule'", "'Condiciones:'", 
+                     "'Prep'", "'{'", "'}'", "'Accion'", "'Rule'", "'Condiciones:'", 
                      "'Consecuencias:'", "'Pre'", "'Post'", "'Contingencia'", 
                      "'rule'", "'.'", "'_'", "'*'", "'DEL'", "'add'", "'Run'", 
                      "<INVALID>", "'OR'", "'AND'", "'NOT'", "'='" ]

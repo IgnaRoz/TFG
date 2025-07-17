@@ -1,0 +1,71 @@
+from system import System;
+
+Prep Usuario(Usuario){libros_prestados};
+Prep Profesor(Usuario);
+Prep Becario(Usuario);
+Prep Sancionado(Usuario);
+Prep Prestamos(Usuario,Libro);
+Prep Libro(Libro);
+Prep Disponible(Libro);
+
+Accion PrestarLibro(Usuario,Libro):
+"""
+Descripción:Se registra el prestamos de un libro a un Usuario.
+Entrada:(Usuario,Libro)
+"""
+    Condiciones:
+        U = Usuario(Usuario);
+        OR(
+            U.libros_prestados < 3; 
+            Profesor(U);//Los profesores no tiene limite
+        );
+        NOT ( Sancionado(Usuario) );
+        Disponible(Libro);
+    Consecuencias:
+        Prestamos(Usuario,Libro);
+        U.libros_prestados += 1;
+        DEL Disponible(Libro);
+
+Accion Sancionar(Usuario):
+"""
+Descripción: Sanciona a un usuario, impidiendo que pueda pedir libros prestados.
+Entrada: Usuario    
+"""
+    Condiciones:
+        Usuario(Usuario);
+        NOT(Profesor(Usuario)); //Los profesores no pueden ser sancionados
+        Dias = System.Input("Introduzca el numero de dias:","Introduzca un valor entero","int");
+    Consecuencias:
+        Sancionado(Usuario);
+        System.print("Numero de dias: {0}",Dias);
+
+Accion DevolverLibro(Usuario,Libro):
+"""
+Descripción: Registra la devolución de un libro por parte de un usuario.
+Entrada: (Usuario,Libro)
+"""
+    Condiciones:
+        Usuario(Usuario);
+        Libro(Libro);
+        Prestamos(Usuario,Libro);
+    Consecuencias:
+        DEL Prestamos(Usuario,Libro);
+        Disponible(Libro);
+
+
+//Inicializacion
+add Usuario(“nacho”){libros_prestados=0};
+add Profesor(“nacho”); // Nacho es profesor, no tiene limite de libros
+add Usuario(“juan”){libros_prestados=0};
+add Libro(“El señor de los anillos”);
+add Disponible(“El señor de los anillos”); 
+add Libro(“El Quijote”);
+add Disponible(“El Quijote”); 
+add Libro(“1984”);
+add Disponible(“1984”); 
+add Libro(“Dune”);
+add Disponible(“Dune”); 
+
+add Prestamos("nacho",“El señor de los anillos”) ;
+add Prestamos("juan",“1984”);
+add Prestamos("nacho",“Dune”);
