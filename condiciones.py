@@ -221,6 +221,8 @@ class CondicionComparacion(Condicion):
 
 
 class CondicionLogica(Condicion):
+    def _df():
+        pass
     def __init__(self, condiciones: List[Condicion], operador: str):
         super().__init__([])
         self.condiciones = condiciones
@@ -229,20 +231,134 @@ class CondicionLogica(Condicion):
             for var_condicion in condicion.variables:
                 if var_condicion not in self.variables:
                     self.variables.append(var_condicion)
+    def _validarCondicion(self,condiciones,contexto,base):
+        oks = []
+        for cond in self.condiciones:
+            ok = False
+            if isinstance(cond,CondicionLogica):
+                #Las condiciones logicas manejan su propios contextos
+                if cond.validar(contexto,base):
+                    ok = True
+                    logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] Resultado condición '{type(cond).__name__}': {ok}")
+                if not ok:
+                    #logger.warning(f"[Regla:{self.nombre}] FALLA en contexto {contexto}")
+                    return False , contexto
+                indice +=1
+
+            #obtenemos el contexto local, que es un subconjunto del contexto original, pero con las variables de la condición
+            variables_cond = {}
+            for var in cond.variables:
+                if isinstance(var,Variable):
+                    variables_cond[var.nombre]=var
+            #variables_cond = list(variables_cond)
+
+
+            contexto_local = {}
+            for var in variables_cond.values():
+                if var.nombre in contexto:
+                    # Si la variable está en el contexto, se añade al contexto local
+                    contexto_local[var.nombre] = contexto[var.nombre]
+                #else:
+                    # Si no está en el contexto, se deja tal cual
+                    #contexto_local[var] = var
+            #contexto_local = {var: contexto[var] for var in variables_cond if var in variables_cond}
+
+
+
+            #comprobar si hay mas de una variable multiple
+            var_mul = None
+            contextos_locales = []#Cambiar nombre por contextos_locales
+            for key in contexto_local.keys():
+                if isinstance(contexto_local[key], list) and len(contexto_local[key]) > 1 and variables_cond[key].agregacion == False: #Si es una variables de agregacion, no se considera como variable multiple
+                    if var_mul is not None:
+                        raise ValueError(f"Más de una variable múltiple en el contexto: {var_mul} y {key}")
+                    var_mul = key
+            if var_mul is not None:
+                #Si hay una variable multiple se debe hacer un contexto local por cada valor de la variable multiple
+                valores_var_mul = contexto_local[var_mul]
+                
+                for valor in valores_var_mul:
+                    #El contexto local no es un diccionario de listas, sino un diccionario de valores, por lo que se debe crear un nuevo contexto local con el valor de la variable multiple
+                    #El contexto local es el contexto original sin la variable multiple
+                    contexto_local_aux = {}
+
+                    for k, v in contexto_local.items():
+                        if k != var_mul: 
+                            if  contexto_local_aux[k].agregacion == False:       
+                                contexto_local_aux[k] = v[0] 
+                            else:#Si es una variable de agregación, se mantiene como lista
+                                contexto_local_aux[k] = v
+                    contexto_local_aux[var_mul] = valor
+                    contextos_locales.append(contexto_local_aux)
+            else:
+                #Si no hay variable multiple, el contexto local es igual al contexto original pero sin listas, a no ser que sea una variable marcada como multiagregacion
+                #El contexto local es el contexto original sin listas
+                #nuevo_contexto = {}
+                for k in list(contexto_local.keys()):
+                    if variables_cond[k].agregacion==False:
+                        contexto_local[k] = contexto_local[k][0]
+                    else:
+                        contexto_local[k] = contexto_local[k]
+                #contexto_local = {k: v[0] for k, v in contexto_local.items()}
+                contextos_locales.append(contexto_local)
+
+
+            #Recorrer cada contexto local y validar la condición, si algun contexto local falla, se debe eliminar el valor de la variable multiple del contexto original si hay una variable multiple.
+            for contexto_local in contextos_locales:
+                if isinstance(cond, CondicionAsignacion):
+                    #Se debe reiniciar la asignación de la condición,
+                    cond.asignacion = []  # Reiniciar la asignación para cada contexto local
+                    #Si la variable esta en el contexto habra que eliminarla antes????
+
+
+                if cond.validar(contexto_local, base):
+                    ok = True
+
+                else:
+                    #logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] FALLA en contexto local {contexto_local} para condición {type(cond).__name__}")
+                    if var_mul is not None:
+                        #Si falla, se elimina el valor de la variable multiple del contexto original
+                        contexto[var_mul].remove(contexto_local[var_mul])#Recuerda que contexto[var_mul] es una lista
+
+
+
+            #Si la condicion es de tipo CondicionAsignacion, se debe comprobar que la asignación se ha realizado correctamente
+            if isinstance(cond, CondicionAsignacion):
+                if not cond.asignacion:
+                    #logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] No se encontraron coincidencias para la asignación en contexto {contexto_local}")
+                    return False , contexto
+                else:
+                    #Si la asignación se ha realizado correctamente, se debe añadir al contexto
+                    contexto[cond.variable_asignacion] = []#si no se ha inicializado, se inicializa como una lista vacía. Si ya existe, vacia igualmente
+                    contexto[cond.variable_asignacion].extend(cond.asignacion)
+            
+
+            #logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] Resultado condición '{type(cond).__name__}': {ok}")
+            if not ok and self.operador =="AND" :
+                #logger.warning(f"[Regla:{self.nombre}] FALLA en contexto {contexto}")
+                return False , contexto
+            elif ok and self.operador =="OR":
+                return True,contexto
+            #oks.append(ok)
+        #logger.info(f"[Regla:{self.nombre}] VALIDADA correctamente para {contexto}")
+
+        return ok , contexto
+
+
 
     def validar(self, contexto: Dict[str, str], base: BaseConocimiento) -> bool:
         if self.operador == "AND":
             logger.debug(f"[Condicion Logica AND] Validando condiciones con AND")
-            resultado = all(condicion.validar(contexto, base) for condicion in self.condiciones)
+            resultado = self._validarCondicion(self.condiciones,contexto, base)
             #logger.debug(f"[Condicion Logica AND] Resultado AND -> {resultado}")
         elif self.operador == "OR":
             logger.debug(f"[Condicion Logica OR] Validando condiciones con OR")
-            resultado = any(condicion.validar(contexto, base) for condicion in self.condiciones)
+            resultado = self._validarCondicion(self.condiciones,contexto, base) 
             #logger.debug(f"[Condicion Logica OR] Resultado OR -> {resultado}")
         else:
             raise ValueError(f"Operador lógico '{self.operador}' no reconocido")
         #en principio no hay condicion NOT aqui, ya hay una condicion negacion
-        logger.debug(f"[Condicion Logica NOT] Resultado {self.operador} -> {resultado}")
+        #logger.debug(f"[Condicion Logica NOT] Resultado {self.operador} -> {resultado}")
         return resultado
     
 class CondicionNegacion(Condicion):

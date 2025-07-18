@@ -3,7 +3,7 @@ from itertools import product
 import logging
 from base import BaseConocimiento,Variable
 logger = logging.getLogger("LOG")
-from condiciones import Condicion, CondicionAsignacion, CondicionFuncion
+from condiciones import Condicion, CondicionAsignacion, CondicionFuncion,CondicionLogica
 from consecuencias import Consecuencia, ConsecuenciaAsignacion, ConsecuenciaModificacion
 
 
@@ -31,7 +31,17 @@ class Regla:
         indice = 1
         logger.info(f"[Regla:{self.nombre}] Iniciar validación con contexto {contexto}")
         for cond in self.condiciones:
-
+            ok = False
+            if isinstance(cond,CondicionLogica):
+                #Las condiciones logicas manejan su propios contextos
+                if cond.validar(contexto,base):
+                    ok = True
+                    logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] Resultado condición '{type(cond).__name__}': {ok}")
+                if not ok:
+                    #logger.warning(f"[Regla:{self.nombre}] FALLA en contexto {contexto}")
+                    return False , contexto
+                continue
+                indice +=1
 
             #obtenemos el contexto local, que es un subconjunto del contexto original, pero con las variables de la condición
             variables_cond = {}
@@ -90,12 +100,14 @@ class Regla:
                 #contexto_local = {k: v[0] for k, v in contexto_local.items()}
                 contextos_locales.append(contexto_local)
 
-            ok = False
+
             #Recorrer cada contexto local y validar la condición, si algun contexto local falla, se debe eliminar el valor de la variable multiple del contexto original si hay una variable multiple.
             for contexto_local in contextos_locales:
                 if isinstance(cond, CondicionAsignacion):
                     #Se debe reiniciar la asignación de la condición,
                     cond.asignacion = []  # Reiniciar la asignación para cada contexto local
+                    #Si la variable esta en el contexto habra que eliminarla antes????
+
 
                 if cond.validar(contexto_local, base):
                     ok = True

@@ -10,14 +10,14 @@ Accion Comprar(Cliente,Evento):
         P = E.precio;
     Consecuencias:
         System.print("Precio: {0} para el cliente {1}",P,C.Cliente);
-    Pre Contingencia Menor_Edad:
+    Pre Contingencia Menor_Edad_Pre:
         Condiciones:
-            C2 = Cliente(Cliente);
-            E2 = Evento(Evento);
-            C2.edad < 18;
+            C = Cliente(Cliente);
+            E = Evento(Evento);
+            C.edad < 18;
         Consecuencias:
-            E2.precio -= 200;
-    Post Contingencia Menor_Edad2:
+            E.precio -= 20;
+    Post Contingencia Menor_Edad_Post:
         Condiciones:
             C.edad < 18;
         Consecuencias:
@@ -30,7 +30,7 @@ Accion Comprar(Cliente,Evento):
             P = 0;
         
 
-add Cliente("nacho"){edad=3};
+add Cliente("nacho"){edad=15};
 
 add Evento("Tomorrowland2025"){precio=75};
 Run Comprar("nacho","Tomorrowland2025");
