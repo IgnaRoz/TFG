@@ -373,6 +373,7 @@ class MotorVisitor(gramaticaVisitor):
         for c in ctx.contingencia():
             cont = self.visitContingencia(c)
             if cont:
+                cont.parametros = params
                 contingencias.append(cont)
         regla.contingencias = contingencias
         accion = ctx.getChild(0).getText() =="Accion"
@@ -612,7 +613,7 @@ class MotorVisitor(gramaticaVisitor):
 
     def visitAsignacionVariable(self, ctx):
 
-        variable_asignacion = ctx.VARIABLE().getText()
+        variable_asignacion = ctx.VARIABLE(0).getText()
 
         if ctx.predicado():
             nombre,argumentos = self.visitPredicado(ctx.predicado())
@@ -621,6 +622,16 @@ class MotorVisitor(gramaticaVisitor):
             funcion = self.visitFuncion(ctx.funcion())
             return CondicionAsignacion(funcion.args,variable_asignacion,funcion)
             #devolver funcion
+        elif ctx.valor():
+            valor = self.visitValor(ctx.valor())
+            return CondicionAsignacion([],variable_asignacion,valor)
+        elif ctx.VARIABLE(1):
+            atributo = None
+            if ctx.idName():
+                atributo = ctx.idName().getText()
+            variable = Variable(ctx.VARIABLE(1).getText(),atributo)
+            return CondicionAsignacion([variable],variable_asignacion,variable)
+
         return None
 
     def visitListaConsecuencias(self, ctx: gramaticaParser.ListaConsecuenciasContext):
@@ -669,9 +680,12 @@ class MotorVisitor(gramaticaVisitor):
             consecuencia = self.visitConsecuenciaRule(ctx.consecuenciaRule())
         return consecuencia
     def visitOperandoIzq(self, ctx):
-
-        variable = Variable(ctx.VARIABLE().getText(),ctx.idName().getText())
-        return variable
+        if(ctx.idName()):
+            variable = Variable(ctx.VARIABLE().getText(),ctx.idName().getText())
+            return variable
+        else:
+            variable = Variable(ctx.VARIABLE().getText())
+            return variable
         return super().visitOperandoIzq(ctx)
     def visitOperandoDrc(self, ctx):
         if ctx.operandoIzq():

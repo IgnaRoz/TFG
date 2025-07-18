@@ -1,0 +1,36 @@
+from system import System;
+
+
+Prep Cliente(Cliente){edad};
+Prep Evento(Evento){precio};
+Accion Comprar(Cliente,Evento):
+    Condiciones:
+        E = Evento(Evento);
+        C = Cliente(Cliente);
+        P = E.precio;
+    Consecuencias:
+        System.print("Precio: {0} para el cliente {1}",P,C.Cliente);
+    Pre Contingencia Menor_Edad:
+        Condiciones:
+            C2 = Cliente(Cliente);
+            E2 = Evento(Evento);
+            C2.edad < 18;
+        Consecuencias:
+            E2.precio -= 200;
+    Post Contingencia Menor_Edad2:
+        Condiciones:
+            C.edad < 18;
+        Consecuencias:
+            E.precio += 20;
+        
+    Contingencia Precio_Negativo:
+        Condiciones:
+            P < 0;
+        Consecuencias:
+            P = 0;
+        
+
+add Cliente("nacho"){edad=3};
+
+add Evento("Tomorrowland2025"){precio=75};
+Run Comprar("nacho","Tomorrowland2025");

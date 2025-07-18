@@ -222,19 +222,28 @@ class ConsecuenciaModificacion(Consecuencia):
 
         if self.objetivo.nombre not in contexto:
             raise ValueError(f"La variable objetivo {self.objetivo} no se encuentra en el contexto")
-        if self.objetivo.atributo not in contexto[self.objetivo.nombre].atributos:
+        if self.objetivo.atributo is not None and self.objetivo.atributo not in contexto[self.objetivo.nombre].atributos:
             raise ValueError(f"No se encuentra el atributo {self.objetivo.atributo} en la variable objetivo {self.objetivo}")
 
         variable_contexto=  contexto[self.objetivo.nombre]
         #elemento = base.proposiciones[variable_contexto.nombre_prop].elementos[variable_contexto.tupla]
         if self.operacion == TipoOperacion.ASIGNACION:
-            variable_contexto.atributos[self.objetivo.atributo] = valor
+            if self.objetivo.atributo is not None:  
+                variable_contexto.atributos[self.objetivo.atributo] = valor
+            else: 
+                contexto[self.objetivo.nombre] = valor
             #elemento.atributos[self.objetivo.atributo] = valor
         elif self.operacion == TipoOperacion.INCREMENTO:
-             variable_contexto.atributos[self.objetivo.atributo] += valor
+            if self.objetivo.atributo is not None:  
+                variable_contexto.atributos[self.objetivo.atributo] += valor
+            else: 
+                contexto[self.objetivo.nombre] += valor
              #elemento.atributos[self.objetivo.atributo] += valor
         elif self.operacion == TipoOperacion.DECREMENTO:
-             variable_contexto.atributos[self.objetivo.atributo] -= valor
+            if self.objetivo.atributo is not None:  
+                variable_contexto.atributos[self.objetivo.atributo] -= valor
+            else: 
+                contexto[self.objetivo.nombre] -= valor
              #elemento.atributos[self.objetivo.atributo] -= valor
         return
         

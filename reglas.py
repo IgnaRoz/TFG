@@ -4,7 +4,7 @@ import logging
 from base import BaseConocimiento,Variable
 logger = logging.getLogger("LOG")
 from condiciones import Condicion, CondicionAsignacion, CondicionFuncion
-from consecuencias import Consecuencia, ConsecuenciaAsignacion
+from consecuencias import Consecuencia, ConsecuenciaAsignacion, ConsecuenciaModificacion
 
 
 class Regla:
@@ -19,7 +19,8 @@ class Regla:
     def validar(self, valores: List[str], base: BaseConocimiento):
         #contexto = dict(zip(self.parametros, valores))
         contexto ={}
-        if isinstance(self,Contingencia): 
+        if isinstance(self,Contingencia) and not self.precondicion: 
+            #Si es una contingencia de precondicion no se debe de tomar los valores como contexto, porque no inicializa los parametros iniciales
             contexto = valores
         else:
 
@@ -160,6 +161,7 @@ class Regla:
                     for atributo in c.atributos:
                         if isinstance(c.atributos[atributo],Variable):
                             variables_cons[c.atributos[atributo].nombre] = c.atributos[atributo]
+                    #if c.
 
                 #variables_cons = list(variables_cons)
 
@@ -212,6 +214,8 @@ class Regla:
                 for contx in contextos_locales:
 
                     c.ejecutar(contx, base)
+                    if isinstance(c,ConsecuenciaModificacion):
+                        contexto[c.objetivo.nombre] = [contx[c.objetivo.nombre]]
             logger.info(f"[Regla:{self.nombre}] Consecuencias ejecutadas")
 
 

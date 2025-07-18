@@ -89,7 +89,7 @@ condicionFuncion
     : funcion
     ;
 asignacionVariable
-    : VARIABLE OpIgual (predicado|funcion)
+    : VARIABLE OpIgual (predicado|funcion| valor | VARIABLE '.' idName | VARIABLE)
     ;
 predicado
     : idName '(' listaArgsPredicado ')'
@@ -177,6 +177,7 @@ asignacion
     ;
 operandoIzq
     : VARIABLE '.' idName
+    | VARIABLE
     ;
 operandoDrc
     : funcion

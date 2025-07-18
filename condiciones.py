@@ -264,12 +264,15 @@ class CondicionAsignacion(Condicion):
         self.asignacion = []# Lista donde se guardarán las tuplas que coincidan con la proposición
         self.nombre_proposicion = None
         self.funcion = None
+        self.valor = None
         if isinstance(valor,str):
             self.nombre_proposicion = valor
         elif isinstance(valor,func):
             self.funcion = valor
+        else:
+            self.valor = valor
     def validar(self, contexto: Dict[str, str], base: BaseConocimiento) -> bool:
-        if self.nombre_proposicion and self.nombre_proposicion not in base.proposiciones:
+        if self.nombre_proposicion and self.valor ==None and self.nombre_proposicion not in base.proposiciones:
             raise ValueError(f"Proposición '{self.nombre_proposicion}' no existe")
         
 
@@ -291,7 +294,7 @@ class CondicionAsignacion(Condicion):
                 if var.nombre not in contexto:
                     raise ValueError(f"No se ha econtrado la variable {var} en el contexto")
                 if var.atributo is not None : 
-                    if var.atributo not  in contexto[var.nombre].atributo:
+                    if var.atributo not  in contexto[var.nombre].atributos:
                         raise ValueError(f"No se ha econtrado el atributo {var.atributo} en la variable {var}")
                     parametros.append(contexto[var.nombre].atributos[var.atributo])
                 else:
@@ -317,7 +320,7 @@ class CondicionAsignacion(Condicion):
                 parametros.append(var)
         #Se debe de recorrer cada elemento de la proposicion, si los valores coinciden, se asigna el valor de la variable de asignación
 
-        if self.nombre_proposicion is not None:
+        if self.nombre_proposicion is not None and self.valor is None:
 
             proposicion = base.proposiciones[self.nombre_proposicion]
             if not proposicion.elementos:
@@ -350,6 +353,12 @@ class CondicionAsignacion(Condicion):
                 self.asignacion.append(elemento)
                 return True
             return False
+        elif self.valor is not None:
+            if isinstance(self.valor,Variable):
+                self.asignacion.append(parametros[0])#Como es una variable se supone un unico valor
+            else:
+                self.asignacion.append(self.valor)
+            return True
         else:
             raise ValueError(f"El valor de la asignacion no es un predicado o una funcion")
 
