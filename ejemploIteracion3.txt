@@ -1,0 +1,93 @@
+from biblioteca import Biblioteca;
+from system import System;
+Prep Usuario(Usuario);
+Prep Profesor(Usuario);
+Prep Sancionado(Usuario){dias=15};
+Prep Prestamos(Usuario,Libro);
+Prep Libro(Libro);
+
+Accion PrestarLibro(Usuario,Libro):
+"""
+Descripción:Se registra el prestamos de un libro a un Usuario.
+Entrada:(Usuario,Libro)
+"""
+    Condiciones:
+        U = Usuario(Usuario);
+        P = Prestamos(Usuario,_);
+        Count = System.count(*P);
+        OR(
+            Count < 3; 
+            Profesor(U);//Los profesores no tiene limite
+        );
+        NOT ( Sancionado(Usuario) );
+        NOT ( Prestamos(_,Libro) );
+    Consecuencias:
+        Prestamos(Usuario,Libro);
+        Biblioteca.concederPrestamo(Usuario,Libro);
+
+Accion Sancionar(Usuario):
+    Condiciones:
+        Usuario(Usuario);
+        NOT(Profesor(Usuario)); //Los profesores no pueden ser sancionados
+        NOT (Sancionado(Usuario));
+        Dias = System.Input("Introduzca los dias de sancion","Debe ser  un numero entero","int");
+    Consecuencias:
+        Sancionado(Usuario){dias=Dias};
+        System.print("Usuario {0} Sancionado",Usuario);
+
+Accion DevolverLibro(Libro):
+    Condiciones:
+        Libro(Libro);
+        P = Prestamos(_,Libro);
+    Consecuencias:
+        System.print("Libro {0} devuelto",Libro);
+
+Accion MostrarLibros():
+    Condiciones:
+        L = Libro(_);
+    Consecuencias:
+        System.print("Libros registrados");
+        System.print("Libro: {0} ",L.Libro);
+
+Accion MostrarUsuarios():
+    Condiciones:
+        U = Usuario(_);
+    Consecuencias:
+        System.print("Usuarios registrados");
+        System.print("Usuario: {0}",U.Usuario);
+
+Accion MostrarLibrosUsuario(Usuario):
+    Condiciones:
+        Usuario(Usuario);
+        P = Prestamos(Usuario,_);
+        C = System.count(*P);        
+    Consecuencias:
+        System.print(“El usuario {0} tiene {1} prestamos”,Usuario,C);
+        System.print(“El usuario {0} tiene prestado el libro {1}”,Usuario, P.Libro);
+
+Accion MostrarLibrosPrestados():
+    Condiciones:
+        P = Prestamos(_,_);
+    Consecuencias:
+        System.print("Prestamos registrados");
+        System.print("Libro {0} prestado a {1}",P.Libro,P.Usuario);
+
+//Inicializacion
+add Usuario(“nacho”);
+add Profesor(“nacho”); // Nacho es profesor, no tiene limite de libros
+add Usuario(“juan”);
+add Libro(“El señor de los anillos”);
+add Libro(“El Quijote”);
+add Libro(“1984”);
+add Libro(“Dune”);
+
+//add Prestamos("nacho",“El señor de los anillos”) ;
+add Prestamos("juan",“1984”);
+add Prestamos("nacho",“Dune”);
+
+//Test
+Run PrestarLibro(“nacho”, “El señor de los anillos”);
+Run DevolverLibro(“El señor de los anillos”);
+Run MostrarLibros();
+Run MostrarUsuarios();
+Run MostrarLibrosPrestados();

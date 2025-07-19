@@ -69,3 +69,14 @@ add Disponible(“Dune”);
 add Prestamos("nacho",“El señor de los anillos”) ;
 add Prestamos("juan",“1984”);
 add Prestamos("nacho",“Dune”);
+
+//Test
+Run PrestarLibro(“nacho”, “El señor de los anillos”);
+Run PrestarLibro(“nacho”, “El Quijote”);
+Run PrestarLibro(“nacho”, “1984”);
+Run PrestarLibro(“nacho”, “Dune”); //No falla porque nacho es profesor y no tiene limite de libros
+Run DevolverLibro(“nacho”, "El señor de los anillos”);
+Run PrestarLibro(“nacho”, “Dune”); // ahora sí debe funcionar
+Run PrestarLibro(“juan”, “El Quijote”) ;// Debe fallar, El Quijote ya esta prestado
+Run DevolverLibro(“nacho”, “El Quijote”);
+Run PrestarLibro(“juan”, “El Quijote”) ;// ahora si debe funcionar

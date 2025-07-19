@@ -284,7 +284,7 @@ class CondicionLogica(Condicion):
 
                     for k, v in contexto_local.items():
                         if k != var_mul: 
-                            if  contexto_local_aux[k].agregacion == False:       
+                            if  variables_cond[k].agregacion == False:       
                                 contexto_local_aux[k] = v[0] 
                             else:#Si es una variable de agregación, se mantiene como lista
                                 contexto_local_aux[k] = v
