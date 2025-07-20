@@ -96,10 +96,11 @@ class Terminal:
             params = []
             # Intentar convertir parámetros numéricos a int
             for p in tokens[2:]:
-                if p.isdigit():
-                    params.append(int(p))
-                else:
-                    params.append(p)
+                params.append(p)
+                #if p.isdigit():
+                #    params.append(int(p))
+                #else:
+                #    params.append(p)
             self.ejecutar_comando_run(prop, params)
         elif verb == 'add':
             if len(tokens) < 2:

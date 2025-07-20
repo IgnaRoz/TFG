@@ -1,0 +1,207 @@
+from system import System;
+
+Prep Usuario(Nombre){telefono="",correo="",fax=""};
+Prep Profesor(Nombre):Usuario;
+Prep Libro(Libro);
+Prep Prestamos(Usuario,Libro);
+Prep Sancionado(Usuario);
+
+
+Accion PrestarLibro(Usuario,Libro):
+"""
+Descripción:Se registra el prestamos de un libro a un Usuario.
+Entrada:(Usuario,Libro)
+"""
+    Condiciones:
+        U = Usuario(Usuario);
+        Libro(Libro);
+        OR(
+            P = Prestamos(Usuario,_);
+            P = 0;//Si no encuentra prestamos, el valor de P 0
+        );
+        Count = System.count(*P);
+        OR(
+            Count < 3; 
+            Profesor(U);//Los profesores no tiene limite
+        );
+        NOT ( Sancionado(Usuario) );
+        NOT ( Prestamos(_,Libro) );
+    Consecuencias:
+        Prestamos(Usuario,Libro);
+        System.print("Prestamo del libro {0} concedido al usuario {1}",Libro,Usuario);
+    Contingencia NoUsuario:
+        Condiciones:
+            NOT (Usuario(Usuario));
+            Count = 0;//Necesario para la contingencia LimiteLibros
+        Consecuencias:
+            System.print("El Usuario {0} no existe",Usuario);
+    Contingencia NoLibro:
+        Condiciones:
+            NOT (Libro(Libro));
+        Consecuencias:
+            System.print("El libro {0} no existe",Libro);
+
+    Contingencia LimiteLibros:
+        Condiciones:
+            Count >= 3;
+            NOT (Profesor(Usuario));
+        Consecuencias:
+            System.print("El Usuario {0} tiene demasiados libros",Usuario);
+            rule MostrarLibrosUsuario(Usuario);
+    Contingencia UsuarioSancionado:
+        Condiciones:
+            Sancionado(Usuario);
+        Consecuencias:
+            System.print("El Usuario {0} esta sancionado",Usuario);
+    Contingencia LibroPrestado:
+        Condiciones:
+            Prestamos(_,Libro);
+        Consecuencias:
+            System.print("El libro {0} ya esta prestado",Libro);
+
+
+Accion DevolverLibro(Libro):
+    Condiciones:
+        Libro(Libro);
+        P = Prestamos(_,Libro);
+    Consecuencias:
+        DEL Prestamos(P.Usuario,Libro);
+        System.print("Libro {0} devuelto",Libro);
+
+    Contingencia NoLibro:
+        Condiciones:
+            NOT (Libro(Libro));
+        Consecuencias:
+            System.print("El libro {0} no existe",Libro);
+    Contingencia NoLibroPrestado:
+        Condiciones:
+            NOT (P = Prestamos(_,Libro));
+        Consecuencias:
+            System.print("No se ha econtrado prestamo para el libro {0}",Libro);
+
+
+Accion MostrarLibros():
+    Condiciones:
+        L = Libro(_);
+    Consecuencias:
+        System.print("Libros registrados");
+        System.print("Libro: {0} ",L.Libro);
+
+Accion MostrarUsuarios():
+    Condiciones:
+        U = Usuario(_);
+    Consecuencias:
+        System.print("Usuarios registrados");
+        System.print("Usuario: {0}",U.Nombre);
+
+
+Accion MostrarLibrosUsuario(Usuario):
+    Condiciones:
+        Usuario(Usuario);
+        P = Prestamos(Usuario,_);
+        C = System.count(*P);        
+    Consecuencias:
+        System.print(“El Usuario {0} tiene {1} prestamos”,Usuario,C);
+        System.print(“El usuario {0} tiene prestado el libro {1}”,Usuario, P.Libro);
+    Contingencia NoUsuario:
+        Condiciones:
+            NOT (Usuario(Usuario));
+        Consecuencias:
+            System.print("El usuario {0} no existe",Usuario);
+
+Accion MostrarLibrosPrestados():
+    Condiciones:
+        P = Prestamos(_,_);
+    Consecuencias:
+        System.print("Prestamos registrados");
+        System.print("Libro {0} prestado a {1}",P.Libro,P.Usuario);
+
+Rule EnviarNotificacion(Usuario,Mensaje):
+    Condiciones:
+        U = Usuario(Usuario);
+        Fail = False;
+        OR(
+            rule EnviarCorreo(U.correo,Mensaje);
+            rule EnviarSms(U.telefono,Mensaje);
+            rule EnviarFax(U.fax,Mensaje);
+            Fail = True;
+        );
+        Fail == False;
+    Consecuencias:
+        System.print("Mensaje para {0}, contenido: {1} ",Usuario,Mensaje);
+    Contingencia NoUsuario:
+        Condiciones:
+            NOT (Usuario(Usuario));
+            Fail = True; //Necesario declararla para la contingencia Fracaso
+        Consecuencias:
+            System.print("El usuario {0} no existe",Usuario);
+    Contingencia Fracaso:
+        Condiciones:
+            Fail == True;
+        Consecuencias:
+            System.print("No se ha podido notificara {0}",Usuario);
+
+
+Rule EnviarCorreo(Correo,Mensaje):
+    Condiciones:
+        NOT(Correo == "");
+    Consecuencias:
+        System.print("Correo enviado a {0}: {1}",Correo,Mensaje);
+Rule EnviarSms(Telefono,Mensaje):
+    Condiciones:
+        NOT(Telefono == "");
+    Consecuencias:
+        System.print("SMS enviado a {0}: {1}",Telefono,Mensaje);
+Rule EnviarFax(Fax,Mensaje):
+    Condiciones:
+        NOT(Fax == "");
+    Consecuencias:
+        System.print("Fax enviado a {0}: {1}",Fax,Mensaje);
+
+Accion Sancionar(Usuario):
+    Condiciones:
+        Usuario(Usuario);
+        NOT(Profesor(Usuario));
+    Consecuencias:
+        rule EnviarNotificacion(Usuario,"Has sido sancionado");
+    Contingencia Profesor:
+        Condiciones:
+            Profesor(Usuario);
+        Consecuencias:
+            System.print("No puedes sancionar a {0}, es un profesor",Usuario);
+    Contingencia NoUsuario:
+        Condiciones:
+            NOT (Usuario(Usuario));
+        Consecuencias:
+            System.print("El usuario {0} no existe",Usuario);
+
+
+add Usuario("Juan"){telefono="123456789",correo="juan@uclm.es"};
+add Usuario("Maria"){correo="maria@uclm.es"};
+add Usuario("Pedro"){fax="123456789"};
+add Usuario("Ana");
+add Profesor("Nacho"){telefono="777777",correo="correo_nacho@alu.uclm.es"};
+
+add Libro(“El señor de los anillos”);
+add Libro(“El Quijote”);
+add Libro(“1984”);
+add Libro(“Dune”);
+
+//add Prestamos("Juan",“1984”);
+//add Prestamos("Nacho",“Dune”);
+
+
+
+Run PrestarLibro(“Nacho”, “El señor de los anillos”);
+
+Run PrestarLibro(“Nacho”, “El Quijote”);
+
+Run PrestarLibro(“Nacho”, “1984”);
+Run PrestarLibro(“Nacho”, “Dune”); //No falla porque nacho es profesor y no tiene limite de libros
+Run DevolverLibro("El señor de los anillos”);
+Run PrestarLibro(“Nacho”, “Dune”); // Debe fallar, Dune ya esta prestado
+Run PrestarLibro(“Juan”, “El Quijote”) ;// Debe fallar, El Quijote ya esta prestado
+Run DevolverLibro(“El Quijote”);
+Run PrestarLibro(“Juan”, “El Quijote”) ;// ahora si debe funcionar
+Run Sancionar("Juan");
+Run Sancionar("Nacho");

@@ -184,6 +184,7 @@ operandoDrc
     | operandoIzq
     | NUMBER
     | VARIABLE
+    | STRING
     ;
 
 OpIgual

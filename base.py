@@ -143,6 +143,14 @@ class Proposicion:
         #logging.getLogger("LOG").debug(f"[{self.nombre}] Eliminada tupla {tupla}")
 
     def existe(self, tupla: Tuple[str, ...]) -> bool:
+        for elemento in self.elementos.values():
+            coincide = True
+            for i, param in enumerate(tupla):
+                if param not in ("_", "") and elemento.tupla[i] != param:
+                    coincide = False
+                    break
+            if coincide:
+                return elemento
         return tupla in self.elementos
 class ElementoProposicion:
     def __init__(self, nombre_prop: str,proposicion:Proposicion, tupla,atributos):

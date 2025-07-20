@@ -3,6 +3,12 @@ from system import System;
 
 Prep Alumno(nombre){telefono="",correo="",fax=""};
 
+Accion Sancionar(Alumno):
+    Condiciones:
+        Alumno(Alumno);
+    Consecuencias:
+        rule EnviarNotificacion(Alumno,"Has sido sancionado");
+
 
 Rule EnviarNotificacion(Alumno,Mensaje):
     Condiciones:
@@ -16,7 +22,7 @@ Rule EnviarNotificacion(Alumno,Mensaje):
         );
         Fail == False;
     Consecuencias:
-        System.print("Mensaje para {0}, contenido: {1} ",Alumno,Mensaje);
+        System.print("El alumno {0} ha sido notificado",Alumno);
     Contingencia Fracaso:
         Condiciones:
             Fail == True;
@@ -40,11 +46,6 @@ Rule EnviarFax(Fax,Mensaje):
     Consecuencias:
         System.print("Fax enviado a {0}: {1}",Fax,Mensaje);
 
-Accion Sancioanr(Alumno):
-    Condiciones:
-        Alumno(Alumno);
-    Consecuencias:
-        rule EnviarNotificacion(Alumno,"Has sido sancionado");
 
 add Alumno("Juan"){telefono="123456789"};
 add Alumno("Maria"){correo="maria@uclm.es"};
@@ -52,7 +53,7 @@ add Alumno("Pedro"){fax="123456789"};
 add Alumno("Ana");
 
 
-Run Sancioanr("Juan");
-Run Sancioanr("Maria");
-Run Sancioanr("Pedro");
-Run Sancioanr("Ana");
+Run Sancionar("Juan");
+Run Sancionar("Maria");
+Run Sancionar("Pedro");
+Run Sancionar("Ana");

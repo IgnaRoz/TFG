@@ -696,7 +696,10 @@ class MotorVisitor(gramaticaVisitor):
             return int(ctx.NUMBER().getText())
         elif ctx.VARIABLE():
             variable = Variable(ctx.VARIABLE().getText())
-        return variable
+            return variable
+        elif ctx.STRING():
+            string = ctx.STRING().getText()[1:-1]
+            return string
 
         return super().visitOperandoDrc(ctx)
 

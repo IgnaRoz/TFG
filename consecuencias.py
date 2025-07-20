@@ -216,6 +216,8 @@ class ConsecuenciaModificacion(Consecuencia):
             valor = self.valor.run(*parametros)
         elif isinstance(self.valor,int):
             valor = self.valor
+        elif isinstance(self.valor,str):
+            valor = self.valor
         else:
             raise ValueError(f"Tipo de valor no reconocido")
         

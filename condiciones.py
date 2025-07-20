@@ -326,12 +326,15 @@ class CondicionLogica(Condicion):
             if isinstance(cond, CondicionAsignacion):
                 if not cond.asignacion:
                     #logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] No se encontraron coincidencias para la asignación en contexto {contexto_local}")
-                    return False , contexto
+                    
+                    
+                    ok = False
+                    #return False , contexto
                 else:
                     #Si la asignación se ha realizado correctamente, se debe añadir al contexto
                     contexto[cond.variable_asignacion] = []#si no se ha inicializado, se inicializa como una lista vacía. Si ya existe, vacia igualmente
                     contexto[cond.variable_asignacion].extend(cond.asignacion)
-            
+                
 
             #logger.debug(f"[Regla:{self.nombre}:Condicion {indice}] Resultado condición '{type(cond).__name__}': {ok}")
             if not ok and self.operador =="AND" :
