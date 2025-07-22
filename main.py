@@ -22,6 +22,10 @@ def parse_args() -> argparse.Namespace:
         choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
         help="Nivel de logging",
     )
+    parser.add_argument(
+        "--log-file",
+        help="Archivo donde guardar los logs",
+    )
     # Argumentos reservados para futuras ampliaciones
     #parser.add_argument(
     #    "--archivo",
@@ -37,7 +41,20 @@ if __name__ == "__main__":
     
     args = parse_args()
     # Configura el nivel de logging elegido
-    logging.getLogger("LOG").setLevel(getattr(logging, args.log_level))
+    logger = logging.getLogger("LOG")
+
+    logger.setLevel(getattr(logging, args.log_level))
+    if args.log_file:
+        for handler in logger.handlers[:]:  # copia de la lista para evitar problemas al iterar
+            logger.removeHandler(handler)
+        file_handler = logging.FileHandler(args.log_file)
+        file_handler.setFormatter(
+            logging.Formatter(
+                "%(asctime)s - %(levelname)s - %(message)s",
+                datefmt="%Y-%m-%d %H:%M:%S",
+            )
+        )
+        logging.getLogger("LOG").addHandler(file_handler)
     base = BaseConocimiento()
 
 

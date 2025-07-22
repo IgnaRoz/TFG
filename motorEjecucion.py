@@ -46,8 +46,9 @@ handler.setFormatter(
     ColoredFormatter("%(asctime)s - %(levelname)s - %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 )
 logger = logging.getLogger("LOG")
-logger.setLevel(logging.DEBUG)
-logger.handlers = [handler]
+if not logger.handlers:
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(handler)
 
 
 from antlr4.error.ErrorListener import ErrorListener as AntlrErrorListener
