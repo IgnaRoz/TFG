@@ -531,6 +531,8 @@ class CondicionRule(Condicion):
         try: 
 
             regla = self.motor.get_regla(self.nombre_regla)
+            if regla is None:
+                regla = self.motor.get_accion(self.nombre_regla)
             return regla.ejecutar(parametros, self.motor.base)
         except KeyError:
             raise ValueError(f"No se ha encontrado la regla {self.nombre_regla}")

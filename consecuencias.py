@@ -311,6 +311,8 @@ class ConsecuenciaRule(Consecuencia):
         tupla = tuple(parametros)
         try: 
             regla = self.motor.get_regla(self.nombre_regla)
+            if regla is None:
+                regla = self.motor.get_accion(self.nombre_regla)
             regla.ejecutar(tupla, self.motor.base)
         except KeyError:
             raise ValueError(f"No se ha encontrado la regla {self.nombre_regla}")
