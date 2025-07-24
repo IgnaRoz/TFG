@@ -37,7 +37,7 @@ motor. Algunos comandos básicos son:
 
 A continuación se muestra una sesión de ejemplo. Primero se inicia el programa
 sin argumentos. En la terminal interactiva se carga el archivo
-`caso_de_uso4.txt` y se ejecutan algunas acciones:
+`iteracion4.txt` y se ejecutan algunas acciones:
 
 ```bash
 $ python main.py

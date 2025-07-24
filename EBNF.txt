@@ -1,0 +1,162 @@
+programa               ::= { imports } { elemento } EOF ;
+
+imports                ::= 'from' idName 'import' idName ';' ;
+
+elemento               ::= declaracion
+                         | accion
+                         | inicializacion
+                         | ejecucion
+                         | comentarioSimple
+                         | comentarioMultilineo ;
+
+declaracion            ::= declCategoria ';' [ comentarioSimple ]
+                         | declProposicion ';' [ comentarioSimple ] ;
+
+declCategoria          ::= 'Categoria' idName '(' [ listaAtributos ] ')' ;
+
+listaAtributos         ::= atributo { ',' atributo } ;
+
+atributo               ::= idName ':' tipoBasico ;
+
+tipoBasico             ::= 'int' | 'str' | 'bool' ;
+
+declProposicion        ::= 'Prep' idName '(' [ listaIdentificadores ] ')' [ ':' idName ] [ bloquePropiedades ] ;
+
+bloquePropiedades      ::= '{' [ listaPropiedades ] '}' ;
+
+listaIdentificadores   ::= idName { ',' idName } ;
+
+listaPropiedades       ::= propiedad { ',' propiedad } ;
+
+propiedad              ::= idName [ '=' valor ] ;
+
+accion                 ::= ( 'Accion' | 'Rule' ) idName '(' [ listaParams ] ')' ':'
+                           [ comentarioMultilineo ]
+                           'Condiciones:' listaCondiciones
+                           'Consecuencias:' listaConsecuencias { contingencia } ;
+
+contingencia           ::= [ 'Pre' | 'Post' ] 'Contingencia' idName ':' [ comentarioMultilineo ]
+                           'Condiciones:' listaCondiciones
+                           'Consecuencias:' listaConsecuencias ;
+
+listaParams            ::= idName { ',' idName } ;
+
+listaCondiciones       ::= { condicion ';' [ comentarioSimple ] } ;
+
+condicion              ::= predicado
+                         | comparacion
+                         | operacionLogica
+                         | asignacionVariable
+                         | condicionFuncion
+                         | condicionRule ;
+
+condicionRule          ::= 'rule' idName '(' listaArgsPredicado ')' ;
+
+condicionFuncion       ::= funcion ;
+
+asignacionVariable     ::= VARIABLE OpIgual ( predicado | funcion | valor | VARIABLE '.' idName | VARIABLE ) ;
+
+predicado              ::= idName '(' listaArgsPredicado ')' ;
+
+listaArgsPredicado     ::= paramPredicado { ',' paramPredicado } ;
+
+paramPredicado         ::= INDIVIDUO | funcion | VARIABLE ;
+
+comparacion            ::= operando ( '==' | '!=' | '<' | '<=' | '>' | '>=' ) operando ;
+
+operando               ::= funcion | VARIABLE | NUMBER | STRING ;
+
+funcion                ::= idName '(' [ listaArgsFuncion ] ')' ;
+
+listaArgsFuncion       ::= paramFuncion { ',' paramFuncion } ;
+
+paramFuncion           ::= INDIVIDUO
+                         | VARIABLE '.' idName
+                         | [ '*' ] VARIABLE
+                         | STRING
+                         | NUMBER
+                         | BOOLEAN ;
+
+operacionLogica        ::= 'OR' '(' listaCondiciones ')'
+                         | 'AND' '(' listaCondiciones ')'
+                         | 'NOT' '(' condicion ')' ;
+
+listaConsecuencias     ::= { consecuencia ';' [ comentarioSimple ] } ;
+
+consecuencia           ::= asignacion
+                         | funcion
+                         | borrado
+                         | predicado [ bloqueValores ]
+                         | consecuenciaRule ;
+
+consecuenciaRule       ::= 'rule' idName '(' listaArgsPredicado ')' ;
+
+asignacion             ::= operandoIzq ( OpAsign | OpIgual ) operandoDrc ;
+
+operandoIzq            ::= VARIABLE '.' idName | VARIABLE ;
+
+operandoDrc            ::= funcion
+                         | operandoIzq
+                         | NUMBER
+                         | VARIABLE
+                         | STRING ;
+
+OpIgual                ::= '=' ;
+
+OpAsign                ::= '+=' | '-=' ;
+
+borrado                ::= 'DEL' predicado ;
+
+inicializacion         ::= 'add' idName '(' argLit { ',' argLit } ')' [ bloqueValores ] ;
+
+bloqueValores          ::= '{' [ listaParejasValor ] '}' ;
+
+listaParejasValor      ::= parejaValor { ',' parejaValor } ;
+
+parejaValor            ::= idName ':' valor ;
+
+valor                  ::= NUMBER | STRING | BOOLEAN ;
+
+argLit                 ::= STRING | NUMBER ;
+
+ejecucion              ::= 'Run' idName '(' [ listaArgLit ] ')' ';' ;
+
+listaArgLit            ::= argLit { ',' argLit } ;
+
+comentarioSimple       ::= COMMENT_SIMPLE ;
+
+comentarioMultilineo   ::= COMMENT_MULTI ;
+
+PRINTABLE              ::= LETTER | DIGIT | "~" | "@" | "#" | "%" | "_" | "$" | "&" | "'" | "-" | "+" | "/" ;
+NON_NL_CHAR            ::= PRINTABLE | ' ' | '\t' ;
+ANY_CHAR               ::= NON_NL_CHAR | '\n' | '\r' ;
+
+COMMENT_SIMPLE         ::= '//' { NON_NL_CHAR } ;
+COMMENT_MULTI          ::= '"""' { ANY_CHAR } '"""' ;
+
+STRING                 ::= '"' { PRINTABLE | ' ' } '"'
+                         | LQUOTE { PRINTABLE | ' ' } RQUOTE ;
+
+BOOLEAN                ::= 'True' | 'False' ;
+
+NUMBER                 ::= DIGIT { DIGIT } ;
+
+INDIVIDUO              ::= LETTER_L { LETTER | DIGIT | '_' } ;
+
+VARIABLE               ::= LETTER_U { LETTER | DIGIT | '_' } ;
+
+idName                 ::= INDIVIDUO | VARIABLE ;
+
+LETTER_L               ::= 'a' … 'z' ;
+
+LETTER_U               ::= 'A' … 'Z' ;
+
+LETTER                 ::= LETTER_L | LETTER_U ;
+
+DIGIT                  ::= '0' … '9' ;
+
+LQUOTE                 ::= '\u201C' ;
+
+RQUOTE                 ::= '\u201D' ;
+
+WS                     ::= ' ' | '\t' | '\r' | '\n' ;

@@ -1,11 +1,11 @@
 from system import System;
 
-Prop Cliente(Cliente){pedidos};
-Prop Empleado(Empleado);
-Prop Chef(Empleado);
-Prop Plato(Plato){precio,stock};
-Prop Orden(Cliente,Plato){cantidad};
-Prop Disponible(Plato);
+Prep Cliente(Cliente){pedidos};
+Prep Empleado(Empleado);
+Prep Chef(Empleado);
+Prep Plato(Plato){precio,stock};
+Prep Orden(Cliente,Plato){cantidad};
+Prep Disponible(Plato);
 
 Accion TomarPedido(C,P,Cnt):
 """

@@ -46,7 +46,7 @@ public class gramaticaLexer extends Lexer {
 	private static String[] makeLiteralNames() {
 		return new String[] {
 			null, "'from'", "'import'", "';'", "'Categoria'", "'('", "')'", "','", 
-			"':'", "'int'", "'str'", "'bool'", "'Prop'", "'{'", "'}'", "'Accion'", 
+			"':'", "'int'", "'str'", "'bool'", "'Prep'", "'{'", "'}'", "'Accion'", 
 			"'Rule'", "'Condiciones:'", "'Consecuencias:'", "'Pre'", "'Post'", "'Contingencia'", 
 			"'rule'", "'.'", "'_'", "'*'", "'DEL'", "'add'", "'Run'", null, "'OR'", 
 			"'AND'", "'NOT'", "'='"
@@ -690,7 +690,7 @@ public class gramaticaLexer extends Lexer {
 		"\u0089\u008a\u0005b\u0000\u0000\u008a\u008b\u0005o\u0000\u0000\u008b\u008c"+
 		"\u0005o\u0000\u0000\u008c\u008d\u0005l\u0000\u0000\u008d\u0016\u0001\u0000"+
 		"\u0000\u0000\u008e\u008f\u0005P\u0000\u0000\u008f\u0090\u0005r\u0000\u0000"+
-		"\u0090\u0091\u0005o\u0000\u0000\u0091\u0092\u0005p\u0000\u0000\u0092\u0018"+
+		"\u0090\u0091\u0005e\u0000\u0000\u0091\u0092\u0005p\u0000\u0000\u0092\u0018"+
 		"\u0001\u0000\u0000\u0000\u0093\u0094\u0005{\u0000\u0000\u0094\u001a\u0001"+
 		"\u0000\u0000\u0000\u0095\u0096\u0005}\u0000\u0000\u0096\u001c\u0001\u0000"+
 		"\u0000\u0000\u0097\u0098\u0005A\u0000\u0000\u0098\u0099\u0005c\u0000\u0000"+

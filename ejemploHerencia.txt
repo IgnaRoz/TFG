@@ -1,9 +1,0 @@
-Prep Alumno(Nombre){telefono="",correo="",fax=""};
-Prep Profesor(Nombre):Alumno;
-
-
-add Alumno("Juan"){telefono="123456789"};
-add Alumno("Maria"){correo="maria@uclm.es"};
-add Alumno("Pedro"){fax="123456789"};
-add Alumno("Ana");
-add Profesor("Nacho"){telefono="777777",correo="correo_nacho@alu.uclm.es"};

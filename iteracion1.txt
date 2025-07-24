@@ -1,0 +1,44 @@
+Prep Evento(Evento,Temporada); 
+Prep Stock(Evento,Temporada); 
+Prep Usuario(Usuario); 
+Prep entrada(Usuario,Evento,Temporada); 
+
+Accion comprarEntrada(Usuario,Evento,Temporada): 
+    Condiciones: 
+        Usuario(Usuario); 
+        Evento(Evento,Temporada); 
+        Stock(Evento,Temporada); 
+    Consecuencias: 
+        entrada(Usuario,Evento,Temporada); 
+        DEL Stock(Evento,Temporada); 
+
+Accion cancelarEntrada(Usuario,Evento,Temporada): 
+    Condiciones: 
+        entrada(Usuario,Evento,Temporada); 
+    Consecuencias: 
+        DEL entrada(Usuario,Evento,Temporada); 
+        Stock(Evento,Temporada); 
+
+Accion agotarStock(Evento,Temporada): 
+    Condiciones: 
+        Stock(Evento,Temporada); 
+    Consecuencias: 
+        DEL Stock(Evento,Temporada); 
+
+Accion reponerStock(Evento,Temporada): 
+    Condiciones: 
+        Evento(Evento,Temporada); 
+    Consecuencias: 
+        Stock(Evento,Temporada); 
+
+//Inicializacion 
+add Evento("Tomorrowland","verano2025"); 
+add Stock("Tomorrowland","verano2025"); 
+add Usuario("ana"); 
+add Usuario("juan"); 
+
+//Test 
+Run comprarEntrada("ana","Tomorrowland","verano2025"); 
+Run cancelarEntrada("ana","Tomorrowland","verano2025"); 
+Run agotarStock("Tomorrowland","verano2025"); 
+Run reponerStock("Tomorrowland","verano2025");
